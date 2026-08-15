@@ -1,0 +1,33 @@
+# Local source archives are user-provided and are never part of the application.
+datasets/
+
+# Reproducible generated data, model weights, and run outputs.
+data/glasseye_v1/images/
+data/glasseye_v1/labels/
+data/glasseye_v1/manifest.csv
+data/glasseye_v1/dataset_hash.txt
+data/external/
+data/bfdd_binary_v1/
+models/*
+!models/.gitkeep
+artifacts/*
+!artifacts/.gitkeep
+
+# Environments and tooling output.
+.venv/
+backend/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.ultralytics/
+.matplotlib/
+.mypy_cache/
+coverage.xml
+htmlcov/
+frontend/node_modules/
+frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
+*.log
+.DS_Store
