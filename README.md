@@ -56,4 +56,5 @@ check, not an official BFDD segmentation score.
 - docs: architecture, dataset licence/annotation audit, and demo runbook
 
 See docs/data-card.md before using any downloaded source data and
-docs/demo-runbook.md for the deterministic proof path.
+docs/demo-runbook.md for the deterministic proof path. For continuation work,
+see docs/handoff-prompt.md.
