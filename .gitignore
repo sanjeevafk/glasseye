@@ -2,10 +2,7 @@
 datasets/
 
 # Reproducible generated data, model weights, and run outputs.
-data/glasseye_v1/images/
-data/glasseye_v1/labels/
-data/glasseye_v1/manifest.csv
-data/glasseye_v1/dataset_hash.txt
+data/glasseye_v1/
 data/external/
 data/bfdd_binary_v1/
 models/*
@@ -29,5 +26,7 @@ frontend/node_modules/
 frontend/dist/
 frontend/playwright-report/
 frontend/test-results/
+backend/*.egg-info/
+yolo*.pt
 *.log
 .DS_Store
