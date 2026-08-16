@@ -44,10 +44,13 @@ COPY models/glasseye-yolo-v1/ /app/models/glasseye-yolo-v1/
 
 # Advisory VLM config for the demo bake. Render injects service env vars as
 # build args automatically; local builds without them fall back to fixture
-# mode (no network, no key). The API key itself is NOT declared here — it is
-# delivered as a build-time secret file mount below so it never lands in the
-# image.
+# mode (no network, no key). GLASSEYE_VLM_API_KEY is only referenced inside
+# the RUN shell below (never persisted via ENV); the key is set as a Render
+# service env var, which Render forwards to the build as an ARG. Hackathon
+# tradeoff: the key value is visible in the image's build layer, so rotate it
+# after the event if it matters.
 ARG DEMO_VLM_MODE=fixture
+ARG GLASSEYE_VLM_API_KEY=
 ARG GLASSEYE_VLM_BASE_URL=https://integrate.api.nvidia.com/v1
 ARG GLASSEYE_VLM_MODEL=meta/llama-3.2-11b-vision-instruct
 ARG GLASSEYE_VLM_TIMEOUT_SECONDS=60
@@ -64,12 +67,9 @@ ENV DEMO_VLM_MODE=${DEMO_VLM_MODE} \
 # depends on backend/ + scripts/, so frontend-only changes reuse this cached
 # layer and deploys stay fast (~3-4 min) instead of retraining the model.
 #
-# When GLASSEYE_VLM_API_KEY is configured as a Render secret file, it is
-# mounted here (build-time only, never persisted in the image) and the real
-# VLM review runs during the bake. Without it, the fixture provider is used.
-RUN --mount=type=secret,id=GLASSEYE_VLM_API_KEY,dst=/etc/secrets/GLASSEYE_VLM_API_KEY \
-    sh -c 'if [ -f /etc/secrets/GLASSEYE_VLM_API_KEY ]; then export GLASSEYE_VLM_API_KEY=$(cat /etc/secrets/GLASSEYE_VLM_API_KEY); fi; \
-    python scripts/prepare_synthetic_dataset.py \
+# The demo bake runs with the real VLM when GLASSEYE_VLM_API_KEY is present
+# (injected by Render as a build arg); otherwise the fixture provider is used.
+RUN sh -c 'python scripts/prepare_synthetic_dataset.py \
     && python scripts/validate_dataset.py \
     && python scripts/train_yolo.py --if-missing \
     && python scripts/run_demo.py'
