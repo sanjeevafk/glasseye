@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FacadeScene } from "./components/FacadeScene";
+import { ImageInspector } from "./components/ImageInspector";
 import { artifactUrl, loadLatestDemo, runDemo } from "./services/api";
 import { displayClassName, statusClass } from "./status";
 import type { MissionResult } from "./types";
@@ -38,8 +39,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!playing || !result || cursor >= result.events.length) return;
-    const handle = window.setTimeout(() => setCursor((value) => value + 1), 850);
+    if (!playing || !result || cursor >= result.events.length) {
+      if (playing && result && cursor >= result.events.length) {
+        setPlaying(false);
+      }
+      return;
+    }
+    const handle = window.setTimeout(() => setCursor((value) => value + 1), 650);
     return () => window.clearTimeout(handle);
   }, [cursor, playing, result]);
 
@@ -74,7 +80,11 @@ export default function App() {
         <div className="simulation-pill">SIMULATION ONLY · NO PHYSICAL ACTUATORS</div>
       </header>
 
-      <section className="hero">
+      {/* Section 1: Interactive Image Inspector */}
+      <ImageInspector />
+
+      {/* Section 2: Deterministic Closed-Loop Simulation */}
+      <section className="hero" id="mission-control">
         <div>
           <p className="section-kicker">DETERMINISTIC CLOSED LOOP</p>
           <h2>YOLO inspection → evidence → policy → simulation → reinspection</h2>
@@ -194,13 +204,33 @@ export default function App() {
             >
               {playing ? "PAUSE" : "PLAY"}
             </button>
-            <button type="button" onClick={() => { setPlaying(false); setCursor(0); }} disabled={!result}>RESET</button>
+            <button
+              type="button"
+              onClick={() => {
+                setPlaying(false);
+                setCursor(0);
+              }}
+              disabled={!result}
+            >
+              RESET
+            </button>
             <button
               type="button"
               onClick={() => setCursor((value) => Math.min(value + 1, result?.events.length ?? 0))}
               disabled={!result || cursor >= result.events.length}
             >
               STEP
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPlaying(false);
+                setCursor(result?.events.length ?? 0);
+              }}
+              disabled={!result || cursor >= (result?.events.length ?? 0)}
+              title="Jump directly to final mission outcome"
+            >
+              JUMP TO END
             </button>
           </div>
           <ol className="timeline" data-testid="timeline">

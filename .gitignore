@@ -9,14 +9,20 @@ data/bfdd_cubit_binary_v1/
 data/bfdd_cubit_uav2k_binary_v1/
 models/*
 !models/.gitkeep
-# The deterministic demo checkpoint is tiny (6 MB) and ships in the image so
-# the Docker build skips retraining entirely (train_yolo.py --if-missing).
+# Checkpoints (6 MB each) ship with the repo so builds and deploys skip retraining
 !models/glasseye-yolo-v1/
 !models/glasseye-yolo-v1/best.pt
 !models/glasseye-yolo-v1/model_manifest.json
 models/glasseye-yolo-v1/training_runs/
+!models/glasseye-yolo-bfdd-cubit-v1/
+!models/glasseye-yolo-bfdd-cubit-v1/best.pt
+!models/glasseye-yolo-bfdd-cubit-v1/model_manifest.json
+!models/glasseye-yolo-bfdd-cubit-v1/metrics_report.json
+models/glasseye-yolo-bfdd-cubit-v1/training_runs/
 artifacts/*
 !artifacts/.gitkeep
+!artifacts/samples/
+!artifacts/samples/*
 
 # Environments and tooling output.
 .venv/

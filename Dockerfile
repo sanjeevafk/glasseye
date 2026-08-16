@@ -37,10 +37,9 @@ COPY backend/ /app/backend/
 COPY scripts/ /app/scripts/
 COPY Makefile /app/Makefile
 
-# The deterministic demo checkpoint ships in the image so the build skips
-# retraining (train_yolo.py --if-missing). 6 MB vs 5-10 min of CPU training
-# on every deploy.
-COPY models/glasseye-yolo-v1/ /app/models/glasseye-yolo-v1/
+# Checkpoints ship in the image so the build skips retraining
+COPY models/ /app/models/
+COPY artifacts/samples/ /app/artifacts/samples/
 
 # Advisory VLM config for the demo bake. Render injects service env vars as
 # build args automatically; local builds without them fall back to fixture
