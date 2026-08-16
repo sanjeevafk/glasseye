@@ -21,5 +21,9 @@ def artifacts_root() -> Path:
     return repo_root() / "artifacts"
 
 
+def samples_root() -> Path:
+    return repo_root() / "backend" / "app" / "samples"
+
+
 def frontend_dist() -> Path:
     return repo_root() / "frontend" / "dist"

@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from .demo import DemoRunner, load_latest_demo
 from .events import EventLog
 from .image_inspector import inspect_image_bytes
-from .paths import artifacts_root, frontend_dist, repo_root
+from .paths import artifacts_root, frontend_dist, repo_root, samples_root
 from .replay import replay_log
 
 app = FastAPI(
@@ -27,7 +27,9 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 artifacts_root().mkdir(parents=True, exist_ok=True)
+samples_root().mkdir(parents=True, exist_ok=True)
 app.mount("/artifacts", StaticFiles(directory=artifacts_root()), name="artifacts")
+app.mount("/samples", StaticFiles(directory=samples_root()), name="samples")
 
 
 @app.get("/health")
@@ -113,7 +115,9 @@ async def inspect_custom_image(
 @app.get("/api/inspect/samples")
 def get_sample_images() -> list[dict]:
     """Return available preset sample facade images for quick testing."""
-    samples_dir = artifacts_root() / "samples"
+    samples_dir = samples_root()
+    if not any(samples_dir.glob("*.jpg")) and (artifacts_root() / "samples").is_dir():
+        samples_dir = artifacts_root() / "samples"
     samples_dir.mkdir(parents=True, exist_ok=True)
     results = []
     metadata = {
@@ -142,10 +146,11 @@ def get_sample_images() -> list[dict]:
                 "expected_type": "sample",
             },
         )
+        url_path = f"/samples/{file.name}" if samples_dir == samples_root() else f"/artifacts/samples/{file.name}"
         results.append(
             {
                 "filename": file.name,
-                "url": f"/artifacts/samples/{file.name}",
+                "url": url_path,
                 **info,
             }
         )
