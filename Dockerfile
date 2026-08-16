@@ -39,7 +39,6 @@ COPY Makefile /app/Makefile
 
 # Checkpoints ship in the image so the build skips retraining
 COPY models/ /app/models/
-COPY artifacts/samples/ /app/artifacts/samples/
 
 # Advisory VLM config for the demo bake. Render injects service env vars as
 # build args automatically; local builds without them fall back to fixture

@@ -1,15 +1,10 @@
-# Local source archives are user-provided and are never part of the application.
+# Local datasets and run outputs (never part of git repository)
 datasets/
+data/
+artifacts/
 
-# Reproducible generated data, model weights, and run outputs.
-data/glasseye_v1/
-data/external/
-data/bfdd_binary_v1/
-data/bfdd_cubit_binary_v1/
-data/bfdd_cubit_uav2k_binary_v1/
-models/*
-!models/.gitkeep
 # Checkpoints (6 MB each) ship with the repo so builds and deploys skip retraining
+models/*
 !models/glasseye-yolo-v1/
 !models/glasseye-yolo-v1/best.pt
 !models/glasseye-yolo-v1/model_manifest.json
@@ -19,10 +14,6 @@ models/glasseye-yolo-v1/training_runs/
 !models/glasseye-yolo-bfdd-cubit-v1/model_manifest.json
 !models/glasseye-yolo-bfdd-cubit-v1/metrics_report.json
 models/glasseye-yolo-bfdd-cubit-v1/training_runs/
-artifacts/*
-!artifacts/.gitkeep
-!artifacts/samples/
-!artifacts/samples/*
 
 # Environments and tooling output.
 .venv/
