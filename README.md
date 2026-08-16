@@ -9,25 +9,13 @@ GlassEye is an end-to-end building façade inspection platform combining fine-tu
 
 ---
 
-## Architecture
+## System Topology & Architecture
 
-![GlassEye System Architecture](docs/glasseye-whiteboard.jpg)
+### Autonomous Inspection Loop
+![GlassEye Autonomous Façade Inspection Loop](docs/system-topology.jpeg)
 
-```text
-Façade Photo / Drone Video
-            ↓
-  YOLO Defect Detector (glasseye-yolo-bfdd-cubit-v1)
-            ↓
-  4×3 Panel Grid Localization & Bounding Box Evidence
-            ↓
-  Advisory Vision-Language Model Review (Optional)
-            ↓
-  Deterministic Policy Engine (CLEAN / ESCALATE / REVIEW)
-            ↓
-  Façade Integrity Score (0–100) & Action Plan Breakdown
-            ↓
-  Interactive Dashboard & 3D Three.js Digital Twin
-```
+### System Architecture & Whiteboard Design
+![GlassEye Architecture & Dataflow](docs/glasseye-whiteboard.jpg)
 
 ---
 
