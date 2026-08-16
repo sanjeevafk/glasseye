@@ -174,7 +174,7 @@ export default function App() {
           <div className="legend">
             <span><i className="dot green" /> resolved</span>
             <span><i className="dot red" /> escalated</span>
-            <span><i className="dot blue" /> active / review</span>
+            <span><i className="dot amber" /> active / review</span>
           </div>
         </article>
 

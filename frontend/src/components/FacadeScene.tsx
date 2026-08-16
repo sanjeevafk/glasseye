@@ -7,10 +7,10 @@ interface Props {
 }
 
 function markerColor(issue: FacadeIssue): THREE.ColorRepresentation {
-  if (issue.status === "RESOLVED") return "#42dd9e";
+  if (issue.status === "RESOLVED") return "#5fc98a";
   if (issue.status === "ESCALATED" || issue.status === "UNRESOLVED") return "#ff647c";
-  if (issue.class_name === "structural_issue") return "#ff9c53";
-  return "#8cb7ff";
+  if (issue.class_name === "structural_issue") return "#eb6c36";
+  return "#e8a33d";
 }
 
 function fallbackClass(status: string): string {
@@ -53,15 +53,15 @@ export function FacadeScene({ issues }: Props) {
     let observer: ResizeObserver | null = null;
     try {
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color("#07101a");
+      scene.background = new THREE.Color("#19140e");
       const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
       camera.position.set(0, 0.2, 8.2);
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       container.replaceChildren(renderer.domElement);
 
-      const ambient = new THREE.AmbientLight("#9db8d6", 1.2);
-      const key = new THREE.DirectionalLight("#e8f2ff", 1.4);
+      const ambient = new THREE.AmbientLight("#d8cdb6", 1.1);
+      const key = new THREE.DirectionalLight("#f2e9d8", 1.3);
       key.position.set(1.5, 2.5, 5);
       scene.add(ambient, key);
 
@@ -70,7 +70,7 @@ export function FacadeScene({ issues }: Props) {
       for (let row = 0; row < 3; row += 1) {
         for (let column = 0; column < 4; column += 1) {
           const material = new THREE.MeshStandardMaterial({
-            color: (row + column) % 2 === 0 ? "#6f8189" : "#778b91",
+            color: (row + column) % 2 === 0 ? "#8a7f6c" : "#958a74",
             roughness: 0.82,
             metalness: 0.08
           });
