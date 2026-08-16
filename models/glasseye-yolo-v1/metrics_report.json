@@ -1,0 +1,45 @@
+{
+  "model_version": "glasseye-yolo-v1",
+  "base_model": "yolov8n.pt",
+  "ultralytics_version": "8.4.120",
+  "torch_version": "2.13.0+cu130",
+  "cuda_available": true,
+  "device": "0",
+  "python_version": "3.12.3",
+  "dataset_hash": "912b87fd0813a98a135dce45ec5c5cea44647ee64b338ce7c766382b9fdd3450",
+  "class_map": {
+    "0": "cleanable_surface_issue",
+    "1": "structural_issue"
+  },
+  "image_size": 320,
+  "epochs": 32,
+  "batch_size": 4,
+  "seed": 20260815,
+  "augmentations": {
+    "mosaic": 0.0,
+    "fliplr": 0.5,
+    "hsv_h": 0.01,
+    "hsv_s": 0.2,
+    "hsv_v": 0.15
+  },
+  "metrics": {
+    "mAP50": 0.995,
+    "mAP50_95": 0.821543,
+    "precision": 0.989752,
+    "recall": 0.998592
+  },
+  "per_class_metrics": {
+    "cleanable_surface_issue": {
+      "mAP50": 0.995,
+      "mAP50_95": 0.930948
+    },
+    "structural_issue": {
+      "mAP50": 0.995,
+      "mAP50_95": 0.712138
+    }
+  },
+  "best_checkpoint": "/home/sanjeev/Downloads/glasseye/models/glasseye-yolo-v1/best.pt",
+  "best_checkpoint_sha256": "1684179f0ba9fef37f10d320a262f633d11f654bcf76e5c8be546a3ab8db8e6a",
+  "training_artifacts": "/home/sanjeev/Downloads/glasseye/models/glasseye-yolo-v1/training_runs/seeded_v1",
+  "validation_artifacts": "/home/sanjeev/Downloads/glasseye/models/glasseye-yolo-v1/training_runs/test_metrics"
+}
