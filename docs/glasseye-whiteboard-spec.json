@@ -1,0 +1,62 @@
+{
+  "title": "GLASSEYE: AUTONOMOUS FACADE INSPECTION & VERIFICATION LOOP",
+  "goal": "Explain how GlassEye detects building facade defects from drone video, runs deterministic policy with advisory VLM, simulates cleaning, and re-inspects to verify remediation.",
+  "audience": "hackathon judges and technical pitch audience",
+  "format": "16:9 landscape",
+  "lanes": [
+    {
+      "label": "PERCEPTION & POLICY",
+      "flows": [
+        "drone video -> YOLO detector -> bbox detections",
+        "bbox detections -> IoU tracker -> crop evidence + centroid",
+        "centroid -> 4x3 facade grid -> panel location",
+        "crop evidence + panel location -> deterministic policy engine -> action decision"
+      ]
+    },
+    {
+      "label": "REMEDIATION & CLOSED-LOOP AUDIT",
+      "flows": [
+        "action decision -> simulated cleaning -> new facade state",
+        "new facade state -> YOLO reinspection -> compare with original panel -> verified outcome",
+        "action decision -> structural crack -> human escalation",
+        "verified outcome -> events.jsonl ledger -> 3D Three.js dashboard"
+      ]
+    }
+  ],
+  "annotations": [
+    "deterministic policy engine: side-effect-free rules (red emphasis)",
+    "advisory VLM: optional review, fails safe to human",
+    "YOLO reinspection: closed-loop proof",
+    "events.jsonl ledger: immutable replay"
+  ],
+  "loops": [
+    "simulated cleaning -> YOLO reinspection -> YOLO detector, labeled closed-loop verification"
+  ],
+  "exact_text": [
+    "drone video",
+    "YOLO detector",
+    "IoU tracker",
+    "crop evidence",
+    "4x3 facade grid",
+    "deterministic policy engine",
+    "advisory VLM",
+    "simulated cleaning",
+    "YOLO reinspection",
+    "verified outcome",
+    "human escalation",
+    "events.jsonl ledger",
+    "3D Three.js dashboard",
+    "closed-loop verification"
+  ],
+  "footer": "Detect -> Decide -> Remediate -> Re-inspect to prove the defect was resolved.",
+  "output_doodles": [
+    "a clean 4x3 facade grid sketch showing panels A1-D3",
+    "a tiny 3D digital twin building sketch"
+  ],
+  "avoid": [
+    "fake UI chrome",
+    "gradients or glows",
+    "photorealism",
+    "colored icon boxes"
+  ]
+}

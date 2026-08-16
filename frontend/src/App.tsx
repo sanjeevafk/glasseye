@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FacadeScene } from "./components/FacadeScene";
 import { artifactUrl, loadLatestDemo, runDemo } from "./services/api";
 import { displayClassName, statusClass } from "./status";
@@ -167,7 +168,9 @@ export default function App() {
             </div>
             <span className="subtle-badge">THREE.JS</span>
           </div>
-          <FacadeScene issues={result?.issues ?? []} />
+          <ErrorBoundary>
+            <FacadeScene issues={result?.issues ?? []} />
+          </ErrorBoundary>
           <div className="legend">
             <span><i className="dot green" /> resolved</span>
             <span><i className="dot red" /> escalated</span>
