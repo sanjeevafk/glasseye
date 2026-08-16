@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlassEye System Architecture — Hackathon Pitch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f5f5f5;
+      --paper-2: #ececec;
+      --ink: #2d3142;
+      --muted: #4f5d75;
+      --soft: #7a8399;
+      --rule: rgba(45, 49, 66, 0.12);
+      --rule-solid: #bfc0c0;
+      --accent: #eb6c36;
+      --accent-tint: rgba(235, 108, 54, 0.08);
+      --link: #2e5aa8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 2.5rem 2rem;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 2rem;
+    }
+
+    .eyebrow {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 400;
+      color: var(--ink);
+      line-height: 1.15;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 820px;
+    }
+
+    .diagram-wrapper {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      margin-bottom: 2.5rem;
+      overflow-x: auto;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      min-width: 1080px;
+    }
+
+    /* Summary cards grid with varied widths */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 0.85fr;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (max-width: 900px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .card .eyebrow {
+      font-size: 0.7rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .card-dot.coral { background: var(--accent); }
+    .card-dot.ink { background: var(--ink); }
+    .card-dot.link { background: var(--link); }
+
+    .card h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .card ul {
+      list-style: none;
+      font-size: 0.825rem;
+      color: var(--ink);
+    }
+
+    .card ul li {
+      position: relative;
+      padding-left: 1rem;
+      margin-bottom: 0.35rem;
+      line-height: 1.4;
+    }
+
+    .card ul li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--soft);
+    }
+
+    footer {
+      border-top: 1px solid var(--rule);
+      padding-top: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--soft);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <p class="eyebrow">SYSTEM TOPOLOGY &amp; DECISION PIPELINE</p>
+      <h1>GlassEye Autonomous Facade Inspection Loop</h1>
+      <p class="subtitle">A deterministic inspection-to-verification architecture: fine-tuned YOLO perception, spatial panel tracking, side-effect-free policy decisions, simulated remediation, and closed-loop re-inspection verification.</p>
+    </header>
+
+    <div class="diagram-wrapper">
+      <svg viewBox="0 0 1200 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/>
+          </marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+          </marker>
+        </defs>
+
+        <!-- Base Background -->
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+        <!-- ========================================== -->
+        <!-- ZONE GROUPINGS (Drawn first)               -->
+        <!-- ========================================== -->
+        
+        <!-- Zone 1: Perception -->
+        <rect x="40" y="60" width="340" height="332" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+        <rect x="56" y="54" width="224" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="168" y="63" fill="rgba(45,49,66,0.55)" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">01 / INGESTION &amp; PERCEPTION TIER</text>
+
+        <!-- Zone 2: Decision -->
+        <rect x="408" y="60" width="380" height="332" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+        <rect x="424" y="54" width="236" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="542" y="63" fill="rgba(45,49,66,0.55)" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">02 / SPATIAL &amp; DECISION ENGINE</text>
+
+        <!-- Zone 3: Simulation & Audit -->
+        <rect x="816" y="60" width="344" height="332" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+        <rect x="832" y="54" width="228" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="946" y="63" fill="rgba(45,49,66,0.55)" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">03 / SIMULATION, AUDIT &amp; UI</text>
+
+
+        <!-- ========================================== -->
+        <!-- CONNECTORS & ARROWS (Drawn before boxes)   -->
+        <!-- ========================================== -->
+
+        <!-- 1. Node 1 (Video) -> Node 2 (YOLO) -->
+        <line x1="130" y1="168" x2="130" y2="224" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="138" y="188" width="76" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="142" y="198" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">RAW FRAMES</text>
+
+        <!-- 2. Node 2 (YOLO) -> Node 3 (IoU & Evidence) -->
+        <line x1="200" y1="258" x2="224" y2="258" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 3. Node 3 (IoU) -> Node 4 (Facade Locator) : Right + Up Elbow -->
+        <path d="M 364,246 H 392 Q 400,246 400,238 V 142 Q 400,134 408,134 H 428" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="332" y="174" width="60" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="388" y="184" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.06em">CENTROID</text>
+
+        <!-- 4. Node 3 (IoU) -> Node 5 (Policy Engine) : Straight Horizontal (Focal) -->
+        <line x1="364" y1="258" x2="428" y2="258" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+        <rect x="372" y="238" width="48" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="396" y="248" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">EVIDENCE</text>
+
+        <!-- 5. Node 4 (Facade Locator) -> Node 5 (Policy Engine) : Straight Vertical -->
+        <line x1="506" y1="168" x2="506" y2="224" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="514" y="188" width="68" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="518" y="198" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">PANEL ID</text>
+
+        <!-- 6a. Node 5 (Policy) -> Node 6 (Advisory VLM) : Forward Dashed -->
+        <line x1="584" y1="246" x2="612" y2="246" stroke="#eb6c36" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+        <rect x="584" y="228" width="28" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="598" y="237" fill="#eb6c36" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CROP</text>
+
+        <!-- 6b. Node 6 (Advisory VLM) -> Node 5 (Policy) : Return Dashed -->
+        <line x1="612" y1="270" x2="584" y2="270" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+        <rect x="580" y="278" width="36" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="598" y="287" fill="#7a8399" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">VERDICT</text>
+
+        <!-- 7. Node 6 (Advisory VLM / Policy Loop) -> Node 7 (Simulator & Verifier) -->
+        <path d="M 768,258 H 792 Q 800,258 800,250 V 142 Q 800,134 808,134 H 836" fill="none" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+        <rect x="712" y="174" width="82" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="790" y="184" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.06em">ACTION ROUTE</text>
+
+        <!-- 8. CLOSED REINSPECTION FEEDBACK LOOP: Node 7 -> Node 2 -->
+        <path d="M 872,168 V 348 Q 872,356 864,356 H 112 Q 104,356 104,348 V 292" fill="none" stroke="#2e5aa8" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-link)"/>
+        <rect x="396" y="348" width="248" height="16" rx="2" fill="#f5f5f5"/>
+        <text x="520" y="359" fill="#2e5aa8" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">REINSPECTION TRIGGER (CLOSED-LOOP VERIFICATION)</text>
+
+        <!-- 9. Node 7 (Simulator) -> Node 8 (Event Ledger) -->
+        <line x1="910" y1="168" x2="910" y2="224" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="918" y="188" width="76" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="922" y="198" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">TRANSITIONS</text>
+
+        <!-- 10. Node 7 (Simulator) -> Node 9 (Three.js UI) -->
+        <path d="M 984,134 H 996 Q 1004,134 1004,142 V 172 Q 1004,180 1012,180" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="968" y="118" width="48" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="992" y="128" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">3D STATE</text>
+
+        <!-- 11. Node 8 (Event Ledger) -> Node 9 (Three.js UI) -->
+        <path d="M 984,258 H 996 Q 1004,258 1004,250 V 222 Q 1004,214 1012,214" fill="none" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <rect x="968" y="266" width="56" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="996" y="276" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SSE REPLAY</text>
+
+
+        <!-- ========================================== -->
+        <!-- NODE BOXES (Mask + Styled Rect + Labels)   -->
+        <!-- ========================================== -->
+
+        <!-- Node 1: Video Ingestion -->
+        <rect x="60" y="100" width="140" height="68" rx="6" fill="#f5f5f5"/>
+        <rect x="60" y="100" width="140" height="68" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <rect x="68" y="108" width="36" height="12" rx="2" fill="transparent" stroke="rgba(122,131,153,0.4)" stroke-width="0.8"/>
+        <text x="86" y="117" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">INPUT</text>
+        <text x="130" y="140" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Facade Video</text>
+        <text x="130" y="156" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">1080p Drone Feed</text>
+
+        <!-- Node 2: YOLO Detector -->
+        <rect x="60" y="224" width="140" height="68" rx="6" fill="#f5f5f5"/>
+        <rect x="60" y="224" width="140" height="68" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="68" y="232" width="38" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.3)" stroke-width="0.8"/>
+        <text x="87" y="241" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">MODEL</text>
+        <text x="130" y="264" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">YOLO Detector</text>
+        <text x="130" y="280" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Ultralytics PyTorch</text>
+
+        <!-- Node 3: IoU Tracker & Evidence -->
+        <rect x="224" y="224" width="140" height="68" rx="6" fill="#f5f5f5"/>
+        <rect x="224" y="224" width="140" height="68" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="232" y="232" width="48" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.3)" stroke-width="0.8"/>
+        <text x="256" y="241" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TRACKER</text>
+        <text x="294" y="264" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">IoU &amp; Evidence</text>
+        <text x="294" y="280" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Crop Buffer &amp; Tracks</text>
+
+        <!-- Node 4: Facade Locator -->
+        <rect x="428" y="100" width="156" height="68" rx="6" fill="#f5f5f5"/>
+        <rect x="428" y="100" width="156" height="68" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="436" y="108" width="44" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.3)" stroke-width="0.8"/>
+        <text x="458" y="117" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SPATIAL</text>
+        <text x="506" y="140" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Facade Locator</text>
+        <text x="506" y="156" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">4×3 Panel Grid (A1-D3)</text>
+
+        <!-- Node 5: Policy Decision Engine (Focal 1) -->
+        <rect x="428" y="224" width="156" height="68" rx="6" fill="#f5f5f5"/>
+        <rect x="428" y="224" width="156" height="68" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+        <rect x="436" y="232" width="42" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.5)" stroke-width="0.8"/>
+        <text x="457" y="241" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">POLICY</text>
+        <text x="506" y="264" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Policy Engine</text>
+        <text x="506" y="280" fill="#eb6c36" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Side-Effect-Free Rules</text>
+
+        <!-- Node 6: Advisory VLM Review (Focal 2) -->
+        <rect x="612" y="224" width="156" height="68" rx="6" fill="#f5f5f5"/>
+        <rect x="612" y="224" width="156" height="68" rx="6" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1.2" stroke-dasharray="4,4"/>
+        <rect x="620" y="232" width="54" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.5)" stroke-width="0.8"/>
+        <text x="647" y="241" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ADVISORY</text>
+        <text x="690" y="264" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Advisory VLM</text>
+        <text x="690" y="280" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Vision-LLM · Review Gate</text>
+
+        <!-- Node 7: Simulator & Verifier -->
+        <rect x="836" y="100" width="148" height="68" rx="6" fill="#f5f5f5"/>
+        <rect x="836" y="100" width="148" height="68" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="844" y="108" width="54" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.3)" stroke-width="0.8"/>
+        <text x="871" y="117" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SIMULATOR</text>
+        <text x="910" y="140" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Sim &amp; Verifier</text>
+        <text x="910" y="156" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Cleaning &amp; Reinspection</text>
+
+        <!-- Node 8: Event Ledger -->
+        <rect x="836" y="224" width="148" height="68" rx="6" fill="#f5f5f5"/>
+        <rect x="836" y="224" width="148" height="68" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <rect x="844" y="232" width="46" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.4)" stroke-width="0.8"/>
+        <text x="867" y="241" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">LEDGER</text>
+        <text x="910" y="264" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Event Ledger</text>
+        <text x="910" y="280" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">events.jsonl · Replay</text>
+
+        <!-- Node 9: Three.js UI Dashboard -->
+        <rect x="1012" y="160" width="136" height="76" rx="6" fill="#f5f5f5"/>
+        <rect x="1012" y="160" width="136" height="76" rx="6" fill="#ffffff" stroke="#2e5aa8" stroke-width="1"/>
+        <rect x="1020" y="168" width="48" height="12" rx="2" fill="transparent" stroke="rgba(46,90,168,0.4)" stroke-width="0.8"/>
+        <text x="1044" y="177" fill="#2e5aa8" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">WEBGL UI</text>
+        <text x="1080" y="200" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Three.js UI</text>
+        <text x="1080" y="218" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">3D Twin &amp; Timeline</text>
+
+
+        <!-- ========================================== -->
+        <!-- EDITORIAL CALLOUTS (Italic serif asides)   -->
+        <!-- ========================================== -->
+        
+        <!-- Callout 1: Safety & VLM -->
+        <text x="820" y="32" fill="#eb6c36" font-size="13" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="end">Advisory only — VLM failures route safely to REVIEW, never unverified action</text>
+        <path d="M 720,36 Q 740,44 712,220" fill="none" stroke="rgba(235,108,54,0.40)" stroke-width="1" stroke-dasharray="4,3"/>
+        <circle cx="712" cy="220" r="2.5" fill="#eb6c36"/>
+
+        <!-- Callout 2: Reinspection Loop -->
+        <text x="40" y="412" fill="#2d3142" font-size="13.5" font-style="italic" font-family="'Instrument Serif', serif">Closed-loop proof: actual YOLO inference validates post-clean facade state</text>
+        <path d="M 280,416 Q 340,416 380,358" fill="none" stroke="rgba(45,49,66,0.40)" stroke-width="1" stroke-dasharray="4,3"/>
+        <circle cx="380" cy="358" r="2.5" fill="#2d3142"/>
+
+
+        <!-- ========================================== -->
+        <!-- LEGEND (Horizontal bottom strip)           -->
+        <!-- ========================================== -->
+        <line x1="40" y1="440" x2="1160" y2="440" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+        
+        <text x="40" y="468" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+        <!-- Legend Item 1 -->
+        <rect x="120" y="458" width="14" height="14" rx="3" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+        <text x="142" y="469" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif">Core Decision Policy (Focal)</text>
+
+        <!-- Legend Item 2 -->
+        <rect x="340" y="458" width="14" height="14" rx="3" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1.2" stroke-dasharray="3,3"/>
+        <text x="362" y="469" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif">Advisory VLM Review (Opt-in)</text>
+
+        <!-- Legend Item 3 -->
+        <rect x="580" y="458" width="14" height="14" rx="3" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="602" y="469" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif">Perception / Compute Node</text>
+
+        <!-- Legend Item 4 -->
+        <rect x="790" y="458" width="14" height="14" rx="3" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="812" y="469" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif">Append-Only Event Ledger</text>
+
+        <!-- Legend Item 5 -->
+        <line x1="990" y1="465" x2="1014" y2="465" stroke="#2e5aa8" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-link)"/>
+        <text x="1024" y="469" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif">Closed-Loop Reinspection</text>
+
+      </svg>
+    </div>
+
+    <!-- Pitch Summary Cards -->
+    <div class="cards-grid">
+      <div class="card">
+        <p class="eyebrow">KEY DIFFERENTIATOR</p>
+        <div class="card-header">
+          <span class="card-dot coral"></span>
+          <h3>Closed-Loop Verification</h3>
+        </div>
+        <p>Unlike standard inspection tools that stop at detection, GlassEye completes the remediation lifecycle.</p>
+        <ul>
+          <li>Simulates cleaning only for validated surface issues (dirt, stain).</li>
+          <li>Re-inspects identical facade coordinates using real YOLO inference.</li>
+          <li>Labels outcome strictly as <strong>RESOLVED</strong>, <strong>UNRESOLVED</strong>, or <strong>ESCALATED</strong>.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">SAFETY &amp; TRUST</p>
+        <div class="card-header">
+          <span class="card-dot ink"></span>
+          <h3>Side-Effect-Free Policy</h3>
+        </div>
+        <p>Deterministic rules govern action paths; LLM vision acts only as a guarded advisory layer.</p>
+        <ul>
+          <li>Structural defects (cracks, spalls) automatically bypass to human review.</li>
+          <li>Advisory VLM inspects ambiguous crops before clean execution.</li>
+          <li>VLM timeouts or errors fail safely to human escalation, never action.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">AUDIT &amp; INTERFACE</p>
+        <div class="card-header">
+          <span class="card-dot link"></span>
+          <h3>Evented 3D Digital Twin</h3>
+        </div>
+        <p>Append-only event log projected into an interactive Three.js panel map.</p>
+        <ul>
+          <li>Every state transition recorded in immutable <code>events.jsonl</code>.</li>
+          <li>Full mission replay reproducing exact historical inspections.</li>
+          <li>4×3 panel grid with real-time SSE streaming to the frontend.</li>
+        </ul>
+      </div>
+    </div>
+
+    <footer>
+      <span>GlassEye Architecture · Pitch Presentation Slide Asset</span>
+      <span>Seed: 20260815 · Ultra-deterministic E2E Pipeline</span>
+    </footer>
+  </div>
+
+</body>
+</html>
