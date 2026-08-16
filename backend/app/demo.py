@@ -19,11 +19,13 @@ from .schemas import (
     IssueStatus,
     MissionResult,
     PolicyOutcome,
+    VlmReview,
 )
 from .simulator import CleaningSimulator
 from .state_machines import IssueStateMachine
 from .synthetic import DEMO_SEED, create_demo_media
 from .verification import issue_visible_after_reinspection, verify_cleaning
+from .vlm import VlmFailure, VlmProvider, build_vlm_provider, describe_metadata
 
 MISSION_ID = "glasseye-seed-20260815"
 MODEL_VERSION = "glasseye-yolo-v1"
@@ -86,10 +88,15 @@ class DemoRunner:
         model_path: Path | None = None,
         detector: DetectorAdapter | None = None,
         output_root: Path | None = None,
+        vlm_provider: VlmProvider | None = None,
+        vlm_mode: str | None = None,
     ) -> None:
         self.model_path = model_path or models_root() / MODEL_VERSION / "best.pt"
         self.detector = detector
         self.output_root = output_root or artifacts_root() / "demo"
+        self.vlm_mode = vlm_mode
+        self._vlm_provider = vlm_provider
+        self._vlm_error: str | None = None
 
     def _detector(self) -> DetectorAdapter:
         return self.detector or YoloDetector(
@@ -98,6 +105,19 @@ class DemoRunner:
             iou_threshold=0.45,
             image_size=320,
         )
+
+    def _vlm(self) -> tuple[VlmProvider | None, str | None]:
+        """Lazily build the configured VLM provider; never raise from the mission."""
+        if self._vlm_provider is not None:
+            return self._vlm_provider, None
+        if self._vlm_error is not None:
+            return None, self._vlm_error
+        try:
+            self._vlm_provider = build_vlm_provider(self.vlm_mode)
+            return self._vlm_provider, None
+        except (VlmFailure, ValueError) as exc:
+            self._vlm_error = str(exc)
+            return None, self._vlm_error
 
     def _transition(
         self,
@@ -227,6 +247,96 @@ class DemoRunner:
                 confidence=candidate.confidence,
                 observation_count=len(candidate.observations),
             )
+            vlm_review: VlmReview | None = None
+            provider, vlm_error = self._vlm()
+            if class_name == DefectClass.STRUCTURAL or decision.outcome == PolicyOutcome.REVIEW:
+                route_reason = (
+                    "HIGH_IMPACT_STRUCTURAL_DETECTION"
+                    if class_name == DefectClass.STRUCTURAL
+                    else "AMBIGUOUS_DETECTION_NEEDS_REVIEW"
+                )
+                event_log.emit(
+                    "VLM_REVIEW_REQUESTED",
+                    source="vlm_adapter",
+                    issue_id=issue_id,
+                    track_id=candidate.track_id,
+                    reason_code=route_reason,
+                    evidence_refs=[evidence.evidence_id],
+                    payload={
+                        "class_name": class_name.value,
+                        "confidence": candidate.confidence,
+                        "observation_count": len(candidate.observations),
+                        "crop_ref": evidence.artifact_ref,
+                    },
+                )
+                if provider is None:
+                    decision = policy.evaluate(
+                        issue_id=issue_id,
+                        class_name=class_name,
+                        confidence=candidate.confidence,
+                        observation_count=len(candidate.observations),
+                        vlm_available=False,
+                    )
+                    event_log.emit(
+                        "VLM_REVIEW_RESULT",
+                        source="vlm_adapter",
+                        issue_id=issue_id,
+                        track_id=candidate.track_id,
+                        reason_code="VLM_UNAVAILABLE",
+                        evidence_refs=[evidence.evidence_id],
+                        payload={"failure": vlm_error or "VLM provider unavailable"},
+                    )
+                else:
+                    crop_path = mission_dir / "evidence" / f"evidence-{candidate.track_id:02d}.jpg"
+                    metadata = describe_metadata(
+                        issue_id=issue_id,
+                        class_name=class_name.value,
+                        confidence=candidate.confidence,
+                        observation_count=len(candidate.observations),
+                        bbox_xyxy=representative.bbox_xyxy,
+                        panel_id=location.panel_id,
+                        model_version=detector.model_version,
+                    )
+                    try:
+                        vlm_review = provider.review(crop_path.read_bytes(), metadata)
+                        decision = policy.evaluate(
+                            issue_id=issue_id,
+                            class_name=class_name,
+                            confidence=candidate.confidence,
+                            observation_count=len(candidate.observations),
+                            vlm_verdict=vlm_review.verdict,
+                        )
+                        event_log.emit(
+                            "VLM_REVIEW_RESULT",
+                            source="vlm_adapter",
+                            issue_id=issue_id,
+                            track_id=candidate.track_id,
+                            reason_code=f"VLM_{vlm_review.verdict.value.upper()}",
+                            evidence_refs=[evidence.evidence_id],
+                            payload={
+                                "verdict": vlm_review.verdict.value,
+                                "rationale": vlm_review.rationale,
+                                "provider": vlm_review.provider,
+                                "latency_ms": vlm_review.latency_ms,
+                            },
+                        )
+                    except VlmFailure as exc:
+                        decision = policy.evaluate(
+                            issue_id=issue_id,
+                            class_name=class_name,
+                            confidence=candidate.confidence,
+                            observation_count=len(candidate.observations),
+                            vlm_available=False,
+                        )
+                        event_log.emit(
+                            "VLM_REVIEW_RESULT",
+                            source="vlm_adapter",
+                            issue_id=issue_id,
+                            track_id=candidate.track_id,
+                            reason_code="VLM_UNAVAILABLE",
+                            evidence_refs=[evidence.evidence_id],
+                            payload={"failure": str(exc)},
+                        )
             self._transition(
                 machine=machine,
                 next_state=IssueStatus.DECIDED,
@@ -256,6 +366,7 @@ class DemoRunner:
                     evidence=[evidence],
                     decision=decision,
                     status=machine.state,
+                    vlm_review=vlm_review,
                 )
             )
 

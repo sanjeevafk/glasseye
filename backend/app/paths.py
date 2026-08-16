@@ -19,3 +19,7 @@ def models_root() -> Path:
 
 def artifacts_root() -> Path:
     return repo_root() / "artifacts"
+
+
+def frontend_dist() -> Path:
+    return repo_root() / "frontend" / "dist"

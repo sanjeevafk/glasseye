@@ -23,6 +23,14 @@ class PolicyOutcome(StrEnum):
     REVIEW = "REVIEW"
 
 
+class VlmVerdict(StrEnum):
+    """Strict structured verdict an advisory VLM may return."""
+
+    CONFIRM = "confirm"
+    REJECT = "reject"
+    ESCALATE = "escalate"
+
+
 class IssueStatus(StrEnum):
     IDLE = "IDLE"
     INSPECTING = "INSPECTING"
@@ -86,6 +94,14 @@ class PolicyDecision(StrictModel):
     confidence: float = Field(ge=0, le=1)
 
 
+class VlmReview(StrictModel):
+    verdict: VlmVerdict
+    rationale: str = Field(min_length=1)
+    provider: str
+    model: str | None = None
+    latency_ms: int = Field(ge=0)
+
+
 class FacadeIssue(StrictModel):
     issue_id: str
     track_id: int = Field(ge=1)
@@ -98,6 +114,7 @@ class FacadeIssue(StrictModel):
     status: IssueStatus
     action_taken: str | None = None
     verification_reason: str | None = None
+    vlm_review: VlmReview | None = None
 
 
 class MissionEvent(StrictModel):

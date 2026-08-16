@@ -4,18 +4,22 @@ from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .demo import DemoRunner, load_latest_demo
 from .events import EventLog
-from .paths import artifacts_root, repo_root
+from .paths import artifacts_root, frontend_dist, repo_root
 from .replay import replay_log
 
 app = FastAPI(
     title="GlassEye API",
     version="0.1.0",
-    description="Local deterministic facade inspection and remediation simulator.",
+    description="Deterministic facade inspection and remediation simulator.",
 )
+
+# Same-origin production (frontend built into frontend/dist and served by this
+# app) needs no CORS; the dev split (Vite on :5173) is allowed for local work.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
@@ -62,3 +66,25 @@ def mission_replay(mission_id: str) -> dict:
     if result is None or result.mission_id != mission_id:
         raise HTTPException(status_code=404, detail="Unknown mission.")
     return replay_log(repo_root() / result.event_log_ref).model_dump(mode="json")
+
+
+if frontend_dist().is_dir():
+    # Serve the built SPA in production (single port).  Registered last so API
+    # and artifact routes keep priority; unknown paths fall back to index.html
+    # for client-side routing.
+    app.mount(
+        "/assets",
+        StaticFiles(directory=frontend_dist() / "assets"),
+        name="assets",
+    )
+
+    @app.get("/", response_model=None)
+    def index() -> FileResponse:
+        return FileResponse(frontend_dist() / "index.html")
+
+    @app.get("/{path:path}", response_model=None)
+    def spa_fallback(path: str) -> FileResponse:
+        candidate = frontend_dist() / path
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(frontend_dist() / "index.html")

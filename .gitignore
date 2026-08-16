@@ -5,6 +5,8 @@ datasets/
 data/glasseye_v1/
 data/external/
 data/bfdd_binary_v1/
+data/bfdd_cubit_binary_v1/
+data/bfdd_cubit_uav2k_binary_v1/
 models/*
 !models/.gitkeep
 artifacts/*
@@ -26,6 +28,7 @@ frontend/node_modules/
 frontend/dist/
 frontend/playwright-report/
 frontend/test-results/
+frontend/tests/demo/recordings/
 backend/*.egg-info/
 yolo*.pt
 *.log

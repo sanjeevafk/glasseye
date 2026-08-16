@@ -53,39 +53,50 @@ To reproduce the BFDD test comparison after extracting BFDD under
     PYTHONPATH=backend .venv/bin/python scripts/benchmark_real_data.py --dataset bfdd --bfdd-split test --min-component-area 512 --checkpoint models/glasseye-yolo-v1/best.pt
     PYTHONPATH=backend .venv/bin/python scripts/benchmark_real_data.py --dataset bfdd --bfdd-split test --min-component-area 512 --checkpoint models/glasseye-yolo-real-bfdd-v1/best.pt
 
-## Required next feature: advisory VLM review
+## Advisory VLM review (implemented)
 
-The original specification requires an optional advisory VLM path for ambiguous
-or high-impact detections. It has **not** been implemented yet. Current policy
-is deterministic-only: high-confidence cleanable issues clean, structural
-issues escalate, and other cases review.
+The advisory VLM path is implemented in `backend/app/vlm.py` behind a
+provider-neutral adapter:
 
-Implement this next:
+- `FixtureVlmProvider` (default, `DEMO_VLM_MODE=fixture`): deterministic
+  rule-based reviewer for tests and presentation runs.
+- `HttpVlmProvider` (`DEMO_VLM_MODE=http`): OpenAI-compatible
+  chat-completions provider gated behind `GLASSEYE_VLM_API_KEY` (with
+  `GLASSEYE_VLM_BASE_URL`, `GLASSEYE_VLM_MODEL`, `GLASSEYE_VLM_TIMEOUT_SECONDS`).
+- Only the selected YOLO evidence crop plus structured metadata is submitted;
+  never raw frames.
+- Strict verdicts: `confirm`, `reject`, or `escalate` with a concise rationale.
+- Routing: structural (high-impact) detections are always reviewed; cleanable
+  detections only when the deterministic policy would send them to REVIEW.
+  The VLM never controls an actuator — it can only move a cleanable case away
+  from CLEAN (reject → REVIEW) or toward human escalation (escalate →
+  ESCALATE); a confirm verdict still requires the confidence/stability gate.
+- On VLM failure, timeout, malformed output, or unavailable credentials the
+  decision routes to `REVIEW` (never `CLEAN`); a structural issue still
+  escalates, and a cleanable issue that cannot be cleared causes the mission
+  to abort rather than clean.
+- `VLM_REVIEW_REQUESTED` / `VLM_REVIEW_RESULT` events are appended to the log
+  and the verdict/rationale is shown in the issue card and replay timeline.
 
-1. Add `backend/app/vlm.py` behind a provider-neutral adapter.
-2. Submit only a selected YOLO evidence crop plus structured metadata; do not
-   send every video frame.
-3. Validate a strict structured verdict: `confirm`, `reject`, or `escalate`,
-   with a concise rationale.
-4. Route ambiguous/high-impact detections through VLM before policy. A VLM must
-   never directly control an actuator.
-5. On VLM failure, timeout, malformed output, or unavailable credentials,
-   route to `REVIEW`, never `CLEAN`.
-6. Emit VLM request/result events and show the verdict/rationale in the issue
-   card and replay timeline.
-7. Add a deterministic fixture adapter for tests and presentation runs, exposed
-   with `DEMO_VLM_MODE=fixture`. Keep the real provider mode behind an API key.
+To run the demo with the real provider once an API key is set:
 
-Expected implementation effort is 4–6 hours including adapter, policy/event/UI
-integration, tests, and fallback handling. For a hackathon, VLM usage should be
-low-cost because it should review only 2–10 selected crops per demo. The main
-tradeoffs are cloud/API-key dependency, review latency, and nondeterminism;
-the fixture mode keeps the E2E demo repeatable.
+    DEMO_VLM_MODE=http GLASSEYE_VLM_API_KEY=... make backend
 
 ## Follow-up priorities
 
-1. Implement the advisory VLM path above.
-2. Add a matching maintenance-dispatch signal/modal for structural escalation.
-3. Resolve UAV2K extraction and validate its annotations.
-4. Improve BFDD mask-to-box conversion and train a multi-source model while
-   preserving the BFDD test split untouched.
+1. Add a matching maintenance-dispatch signal/modal for structural escalation.
+2. ~~Resolve UAV2K extraction and validate its annotations~~ — done:
+   extraction is under `data/external/uav2k/`, 90 damaged label files were
+   regenerated from the intact COCO JSONs and validated
+   (`scripts/recover_uav2k_labels.py`, `artifacts/uav2k-recovery-report.json`,
+   `docs/uav2k-data-card.md`). Still blocked on license selection
+   (`LICENSE_SELECTION_REQUIRED.txt`) — local use only.
+3. Improve BFDD mask-to-box conversion and train a multi-source model while
+   preserving the BFDD test split untouched. A three-source dataset
+   (BFDD + CUBIT + UAV2K) is prepared and verified at
+   `data/bfdd_cubit_uav2k_binary_v1` (`scripts/prepare_bfdd_cubit_uav2k_dataset.py`);
+   training it is the natural next experiment.
+4. Re-run the CUBIT audit/preparation and the combined-model benchmark
+   (`scripts/audit_cubit_dataset.py`, `scripts/prepare_bfdd_cubit_dataset.py`,
+   `scripts/benchmark_real_data.py --dataset bfdd`, `scripts/benchmark_cubit_data.py`)
+   and record the final recommendation in `docs/bfdd-cubit-experiment.md`.

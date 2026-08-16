@@ -1,0 +1,13 @@
+# GlassEye — Render blueprint (free tier compatible).
+# A single web service runs the whole app: regenerates the deterministic demo
+# at boot, then serves the built SPA and FastAPI on one port.
+services:
+  - type: web
+    name: glasseye
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8000"

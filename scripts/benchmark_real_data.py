@@ -147,7 +147,9 @@ def draw_overlay(
     return overlay
 
 
-def predict_binary(model: object, image: np.ndarray, image_id: str) -> list[Prediction]:
+def predict_binary(
+    model: object, image: np.ndarray, image_id: str, max_det: int = 20
+) -> list[Prediction]:
     try:
         import torch
 
@@ -160,7 +162,7 @@ def predict_binary(model: object, image: np.ndarray, image_id: str) -> list[Pred
         iou=0.45,
         imgsz=320,
         device=device,
-        max_det=20,
+        max_det=max_det,
         verbose=False,
     )[0]
     names = result.names
