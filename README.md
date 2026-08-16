@@ -1,95 +1,117 @@
 # GlassEye
 
-GlassEye is a deterministic, simulated facade-inspection loop: a fine-tuned
-YOLO model finds visible facade defects in recorded video, tracks and locates
-them, records evidence, applies a rules-based simulated response, reinspects
-the same panel, and shows the outcome in a Three.js dashboard.
+**AI-Powered Façade Inspection & Remediation Simulator**
 
-It makes no claim of real drone autonomy, physical spraying, repair safety, or
-field-ready defect performance.
+GlassEye is an end-to-end building façade inspection platform combining fine-tuned YOLO defect detection, 4×3 panel localization, automated policy recommendations, advisory VLM reviews, and a closed-loop drone mission simulator with a 3D Three.js dashboard.
 
-## Start here
+[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-glasseye--yolo--bfdd--cubit--v1-blue)](https://huggingface.co/sanjeevafk/glasseye-yolo-bfdd-cubit-v1)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-brightgreen)](https://glasseye-td75.onrender.com)
 
-    make setup
-    make e2e-demo
+---
 
-The second command is the release gate: it prepares and validates the
-dataset, trains or reuses the checkpoint, runs real image and video inference,
-executes and replays the deterministic mission, then verifies the FastAPI +
-Vite + Three.js dashboard in Chromium.
+## Architecture
 
-For a local presentation after the checkpoint exists:
+![GlassEye System Architecture](docs/glasseye-whiteboard.jpg)
 
-    make demo
-    make backend
+```text
+Façade Photo / Drone Video
+            ↓
+  YOLO Defect Detector (glasseye-yolo-bfdd-cubit-v1)
+            ↓
+  4×3 Panel Grid Localization & Bounding Box Evidence
+            ↓
+  Advisory Vision-Language Model Review (Optional)
+            ↓
+  Deterministic Policy Engine (CLEAN / ESCALATE / REVIEW)
+            ↓
+  Façade Integrity Score (0–100) & Action Plan Breakdown
+            ↓
+  Interactive Dashboard & 3D Three.js Digital Twin
+```
 
-In another terminal:
+---
 
-    make frontend
+## Features
 
-Open http://127.0.0.1:5173 and use RUN DETERMINISTIC DEMO.
+- **Interactive Façade Scanner**: Upload any building façade photo or choose 1-click test presets to get instant YOLO defect bounding boxes, 4×3 panel grid coordinates, and a 0–100 Façade Integrity Index.
+- **Automated Dispatch Policy**: Recommends actionable steps (`SIMULATED CLEAN APPROVAL`, `MANDATORY STRUCTURAL ESCALATION`, `MAINTENANCE SCHEDULE`).
+- **Advisory VLM Second Opinions**: Routes high-impact defect crops to a Vision-Language Model for independent second-opinion verification.
+- **Closed-Loop Drone Simulation**: Replays a full drone flight scenario with video inference, IOU tracking, simulated cleaning commands, and post-remediation verification.
+- **Three.js 3D Panel Map**: Visualizes real-time status (`resolved`, `escalated`, `active`) across building geometry with automatic 2D fallback for headless/non-WebGL environments.
 
-## Advisory VLM review (optional)
+---
 
-An advisory vision-language review runs on selected evidence crops before the
-policy decision: structural (high-impact) detections are always reviewed, and
-ambiguous cleanable detections are reviewed before any decision. The VLM never
-controls an actuator; it can only move a cleanable case to REVIEW or to human
-escalation, and any VLM failure routes to REVIEW, never CLEAN.
+## Quickstart
 
-The deterministic fixture mode is the default and keeps the E2E demo
-repeatable:
+### 1. Installation
 
-    DEMO_VLM_MODE=fixture make demo
+```bash
+make setup
+```
 
-To use a real OpenAI-compatible VLM once an API key exists:
+### 2. Run Local Application
 
-    DEMO_VLM_MODE=http GLASSEYE_VLM_API_KEY=... make demo
+Start backend (FastAPI):
+```bash
+make backend
+```
 
-See backend/app/vlm.py for provider configuration.
+In a second terminal, start frontend (Vite / React):
+```bash
+make frontend
+```
 
-## External real-data benchmark
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173) in your browser.
 
-After extracting the user-provided BFDD archive to `data/external/bfdd`, create
-the grouped training/validation/test split:
+### 3. Run Automated Tests
 
-    make prepare-bfdd
+```bash
+# Run backend tests + ruff linting
+.venv/bin/ruff check .
+PYTHONPATH=backend .venv/bin/pytest backend/tests -q
 
-Benchmark the original synthetic model and the BFDD-tuned checkpoint on the
-same held-out 149-image test split:
+# Run frontend Playwright E2E browser tests
+npm --prefix frontend run test:e2e
+```
 
-    PYTHONPATH=backend .venv/bin/python scripts/benchmark_real_data.py --dataset bfdd --bfdd-split test --min-component-area 512 --checkpoint models/glasseye-yolo-v1/best.pt
-    PYTHONPATH=backend .venv/bin/python scripts/benchmark_real_data.py --dataset bfdd --bfdd-split test --min-component-area 512 --checkpoint models/glasseye-yolo-real-bfdd-v1/best.pt
+---
 
-The script converts all non-background BFDD mask components to binary defect
-boxes and writes an isolated report/overlays directory for each checkpoint
-under `artifacts/real-benchmark/bfdd/`. This is a reproducible domain-shift
-check, not an official BFDD segmentation score.
+## Trained Model Checkpoints
 
-## Production deployment
+The active production model is trained on real Building Façade Defect Dataset (BFDD) and CUBIT concrete defect data:
 
-The app can run as a single self-contained container: the image builds the
-frontend, and at boot regenerates the deterministic demo (dataset, YOLO
-checkpoint, scenario video, mission events), then serves the API and the
-built SPA on one port.
+- **Hugging Face Hub**: [`sanjeevafk/glasseye-yolo-bfdd-cubit-v1`](https://huggingface.co/sanjeevafk/glasseye-yolo-bfdd-cubit-v1)
+- **Local Checkpoint**: `models/glasseye-yolo-bfdd-cubit-v1/best.pt`
 
-    docker build -t glasseye-demo .
-    docker run -p 8000:8000 glasseye-demo
+### Python Inference Snippet
 
-Open http://127.0.0.1:8000. A `render.yaml` blueprint deploys the same image
-to Render (free tier):
+```python
+from ultralytics import YOLO
 
-    render blueprint launch
+model = YOLO("models/glasseye-yolo-bfdd-cubit-v1/best.pt")
+results = model.predict("backend/app/samples/spalling_damage_sample.jpg", conf=0.15)
+results[0].show()
+```
 
-## Layout
+---
 
-- backend/app: detector adapter, tracking, evidence, localization, policy,
-  state machine, simulator, verification, events, replay, and API
-- frontend: Vite/React dashboard with a native Three.js facade panel map
-- scripts: dataset audit/validation, training, inference, and mission runner
-- docs: architecture, dataset licence/annotation audit, and demo runbook
-- Dockerfile / render.yaml / .dockerignore: single-container production deploy
+## Production Deployment
 
-See docs/data-card.md before using any downloaded source data and
-docs/demo-runbook.md for the deterministic proof path. For continuation work,
-see docs/handoff-prompt.md.
+The application runs as a single self-contained Docker container serving the compiled React frontend and FastAPI backend on a single port:
+
+```bash
+docker build -t glasseye-demo .
+docker run -p 8000:8000 glasseye-demo
+```
+
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000). A `render.yaml` blueprint is included for 1-click cloud deployment.
+
+---
+
+## Documentation
+
+- [`docs/architecture.md`](docs/architecture.md): Core system design and state machines
+- [`docs/data-card.md`](docs/data-card.md): Dataset sources, licensing, and annotation schemas
+- [`docs/bfdd-cubit-experiment.md`](docs/bfdd-cubit-experiment.md): Benchmark results across BFDD, CUBIT, and UAV2K
+- [`docs/cubit-data-card.md`](docs/cubit-data-card.md): CUBIT concrete defect dataset card
+- [`docs/uav2k-data-card.md`](docs/uav2k-data-card.md): UAV2K high-resolution drone façade dataset card
