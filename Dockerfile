@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.2
 # GlassEye production image: single container serving the built SPA and API.
 # The deterministic demo (synthetic dataset, YOLO checkpoint, scenario video,
 # mission events) is regenerated at boot so the container is self-contained.
@@ -41,6 +42,20 @@ COPY Makefile /app/Makefile
 # on every deploy.
 COPY models/glasseye-yolo-v1/ /app/models/glasseye-yolo-v1/
 
+# Advisory VLM config for the demo bake. Render injects service env vars as
+# build args automatically; local builds without them fall back to fixture
+# mode (no network, no key). The API key itself is NOT declared here — it is
+# delivered as a build-time secret file mount below so it never lands in the
+# image.
+ARG DEMO_VLM_MODE=fixture
+ARG GLASSEYE_VLM_BASE_URL=https://integrate.api.nvidia.com/v1
+ARG GLASSEYE_VLM_MODEL=meta/llama-3.2-11b-vision-instruct
+ARG GLASSEYE_VLM_TIMEOUT_SECONDS=60
+ENV DEMO_VLM_MODE=${DEMO_VLM_MODE} \
+    GLASSEYE_VLM_BASE_URL=${GLASSEYE_VLM_BASE_URL} \
+    GLASSEYE_VLM_MODEL=${GLASSEYE_VLM_MODEL} \
+    GLASSEYE_VLM_TIMEOUT_SECONDS=${GLASSEYE_VLM_TIMEOUT_SECONDS}
+
 # Generate the deterministic demo at build time so the image ships with the
 # dataset, checkpoint, scenario video, and mission events baked in. Boot then
 # starts instantly instead of retraining on every cold start.
@@ -48,10 +63,16 @@ COPY models/glasseye-yolo-v1/ /app/models/glasseye-yolo-v1/
 # NOTE: this RUN sits BEFORE the frontend dist COPY on purpose. The demo only
 # depends on backend/ + scripts/, so frontend-only changes reuse this cached
 # layer and deploys stay fast (~3-4 min) instead of retraining the model.
-RUN python scripts/prepare_synthetic_dataset.py \
+#
+# When GLASSEYE_VLM_API_KEY is configured as a Render secret file, it is
+# mounted here (build-time only, never persisted in the image) and the real
+# VLM review runs during the bake. Without it, the fixture provider is used.
+RUN --mount=type=secret,id=GLASSEYE_VLM_API_KEY,dst=/etc/secrets/GLASSEYE_VLM_API_KEY \
+    sh -c 'if [ -f /etc/secrets/GLASSEYE_VLM_API_KEY ]; then export GLASSEYE_VLM_API_KEY=$(cat /etc/secrets/GLASSEYE_VLM_API_KEY); fi; \
+    python scripts/prepare_synthetic_dataset.py \
     && python scripts/validate_dataset.py \
     && python scripts/train_yolo.py --if-missing \
-    && python scripts/run_demo.py
+    && python scripts/run_demo.py'
 
 # Frontend dist copied LAST so frontend-only changes never invalidate the
 # demo-generation layer above.
