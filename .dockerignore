@@ -1,0 +1,23 @@
+# Build context must stay small: the demo regenerates all data, models, and
+# artifacts at boot, so only source code is needed in the image.
+datasets/
+data/
+models/
+artifacts/
+.venv/
+backend/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.ultralytics/
+.matplotlib/
+frontend/node_modules/
+frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
+.git/
+*.log
+.gitignore
+Dockerfile
+render.yaml

@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .schemas import DefectClass, PolicyDecision, PolicyOutcome
+from .schemas import DefectClass, PolicyDecision, PolicyOutcome, VlmVerdict
 
 
 @dataclass(frozen=True)
@@ -34,12 +34,44 @@ class FacadePolicyEngine:
         class_name: DefectClass,
         confidence: float,
         observation_count: int,
+        vlm_verdict: VlmVerdict | None = None,
+        vlm_available: bool = True,
     ) -> PolicyDecision:
+        """Decide CLEAN / ESCALATE / REVIEW.
+
+        ``vlm_verdict`` is the advisory outcome of an optional VLM review of
+        the evidence crop.  The VLM never controls an actuator: it can only
+        move a cleanable case away from CLEAN (reject -> REVIEW) or toward
+        human escalation (escalate -> ESCALATE).  A confirm verdict still
+        requires the deterministic confidence/stability gate.  Structural
+        issues always ESCALATE regardless of the advisory verdict.
+        """
         if class_name == DefectClass.STRUCTURAL:
             return PolicyDecision(
                 issue_id=issue_id,
                 outcome=PolicyOutcome.ESCALATE,
                 reason_code="STRUCTURAL_ISSUE_MANDATORY_ESCALATION",
+                confidence=confidence,
+            )
+        if not vlm_available:
+            return PolicyDecision(
+                issue_id=issue_id,
+                outcome=PolicyOutcome.REVIEW,
+                reason_code="VLM_UNAVAILABLE_SAFE_REVIEW",
+                confidence=confidence,
+            )
+        if vlm_verdict == VlmVerdict.REJECT:
+            return PolicyDecision(
+                issue_id=issue_id,
+                outcome=PolicyOutcome.REVIEW,
+                reason_code="VLM_REJECTED_DETECTION",
+                confidence=confidence,
+            )
+        if vlm_verdict == VlmVerdict.ESCALATE:
+            return PolicyDecision(
+                issue_id=issue_id,
+                outcome=PolicyOutcome.ESCALATE,
+                reason_code="VLM_ADVISED_ESCALATION",
                 confidence=confidence,
             )
         if confidence >= self.config.clean_confidence and observation_count >= self.config.stable_observations:

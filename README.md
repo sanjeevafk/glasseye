@@ -29,6 +29,25 @@ In another terminal:
 
 Open http://127.0.0.1:5173 and use RUN DETERMINISTIC DEMO.
 
+## Advisory VLM review (optional)
+
+An advisory vision-language review runs on selected evidence crops before the
+policy decision: structural (high-impact) detections are always reviewed, and
+ambiguous cleanable detections are reviewed before any decision. The VLM never
+controls an actuator; it can only move a cleanable case to REVIEW or to human
+escalation, and any VLM failure routes to REVIEW, never CLEAN.
+
+The deterministic fixture mode is the default and keeps the E2E demo
+repeatable:
+
+    DEMO_VLM_MODE=fixture make demo
+
+To use a real OpenAI-compatible VLM once an API key exists:
+
+    DEMO_VLM_MODE=http GLASSEYE_VLM_API_KEY=... make demo
+
+See backend/app/vlm.py for provider configuration.
+
 ## External real-data benchmark
 
 After extracting the user-provided BFDD archive to `data/external/bfdd`, create
@@ -47,6 +66,21 @@ boxes and writes an isolated report/overlays directory for each checkpoint
 under `artifacts/real-benchmark/bfdd/`. This is a reproducible domain-shift
 check, not an official BFDD segmentation score.
 
+## Production deployment
+
+The app can run as a single self-contained container: the image builds the
+frontend, and at boot regenerates the deterministic demo (dataset, YOLO
+checkpoint, scenario video, mission events), then serves the API and the
+built SPA on one port.
+
+    docker build -t glasseye-demo .
+    docker run -p 8000:8000 glasseye-demo
+
+Open http://127.0.0.1:8000. A `render.yaml` blueprint deploys the same image
+to Render (free tier):
+
+    render blueprint launch
+
 ## Layout
 
 - backend/app: detector adapter, tracking, evidence, localization, policy,
@@ -54,6 +88,7 @@ check, not an official BFDD segmentation score.
 - frontend: Vite/React dashboard with a native Three.js facade panel map
 - scripts: dataset audit/validation, training, inference, and mission runner
 - docs: architecture, dataset licence/annotation audit, and demo runbook
+- Dockerfile / render.yaml / .dockerignore: single-container production deploy
 
 See docs/data-card.md before using any downloaded source data and
 docs/demo-runbook.md for the deterministic proof path. For continuation work,

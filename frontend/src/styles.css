@@ -265,8 +265,21 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .status-resolved { color: #89f2bd; border-color: rgba(73, 229, 163, 0.6); background: rgba(38, 170, 112, 0.15); }
 .status-escalated { color: #ffa4b3; border-color: rgba(255, 100, 124, 0.62); background: rgba(192, 46, 72, 0.15); }
 .status-review { color: #ffe2a0; border-color: rgba(255, 195, 96, 0.56); background: rgba(169, 112, 25, 0.15); }
-.status-active { color: #b2d9ff; }
-.confidence { margin-bottom: 13px; font-size: 0.78rem; }
+.status-active { color: #b2d9ff; }  .confidence { margin-bottom: 13px; font-size: 0.78rem; }
+
+  .vlm-review {
+    margin: 12px 0;
+    padding: 11px 12px;
+    border: 1px solid rgba(148, 196, 222, 0.22);
+    border-radius: 10px;
+    background: rgba(148, 196, 222, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .vlm-review strong { color: #b2d9ff; font-size: 0.82rem; letter-spacing: 0.08em; }
+  .vlm-review span { font-size: 0.78rem; color: #a8c4d2; line-height: 1.45; }
+  .vlm-review small { font-size: 0.66rem; color: #6f8b99; }
 
 .evidence {
   width: 100%;

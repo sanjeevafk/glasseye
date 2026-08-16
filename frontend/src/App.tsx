@@ -12,6 +12,10 @@ function simulatedActuatorEvent(result: MissionResult | null) {
   return result?.events.find((event) => event.event_type === "SIMULATED_CLEANING_COMPLETED") ?? null;
 }
 
+function structuralEscalationEvent(result: MissionResult | null) {
+  return result?.events.find((event) => event.event_type === "ESCALATION_CREATED") ?? null;
+}
+
 export default function App() {
   const [result, setResult] = useState<MissionResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,6 +24,7 @@ export default function App() {
   const [cursor, setCursor] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [showActuatorSignal, setShowActuatorSignal] = useState(false);
+  const [showMaintenanceSignal, setShowMaintenanceSignal] = useState(false);
 
   useEffect(() => {
     void loadLatestDemo()
@@ -39,6 +44,7 @@ export default function App() {
 
   const events = useMemo(() => visibleEvents(result, cursor), [result, cursor]);
   const actuatorEvent = simulatedActuatorEvent(result);
+  const escalationEvent = structuralEscalationEvent(result);
 
   async function executeDemo() {
     setRunning(true);
@@ -49,6 +55,7 @@ export default function App() {
       setResult(next);
       setCursor(next.events.length);
       setShowActuatorSignal(Boolean(simulatedActuatorEvent(next)));
+      setShowMaintenanceSignal(Boolean(structuralEscalationEvent(next)));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Demo execution failed");
     } finally {
@@ -87,6 +94,34 @@ export default function App() {
       </section>
 
       {error && <p className="error" role="alert">{error}</p>}
+
+      {!showActuatorSignal && showMaintenanceSignal && escalationEvent && (
+        <div className="actuator-backdrop" role="presentation">
+          <section
+            aria-describedby="maintenance-dispatch-detail"
+            aria-labelledby="maintenance-dispatch-title"
+            aria-modal="true"
+            className="actuator-modal"
+            data-testid="maintenance-dispatch-modal"
+            role="dialog"
+          >
+            <p className="section-kicker">DRONE BRAIN / MAINTENANCE SIGNAL</p>
+            <h2 id="maintenance-dispatch-title">STRUCTURAL MAINTENANCE DISPATCH</h2>
+            <p id="maintenance-dispatch-detail">
+              Target: facade panel {result?.issues.find((issue) => issue.issue_id === escalationEvent.issue_id)?.location.panel_id ?? "—"}.
+              A structural issue was escalated for human review; no cleaning actuator was engaged.
+            </p>
+            <div className="command-readout">
+              <span>DISPATCH</span>
+              <strong>HUMAN STRUCTURAL REVIEW</strong>
+              <span>ACTION</span>
+              <strong>ESCALATE — NO CLEANING</strong>
+            </div>
+            <p className="simulation-note">Software dispatch signal only — no physical maintenance crew was notified.</p>
+            <button type="button" onClick={() => setShowMaintenanceSignal(false)}>ACKNOWLEDGE</button>
+          </section>
+        </div>
+      )}
 
       {showActuatorSignal && actuatorEvent && (
         <div className="actuator-backdrop" role="presentation">
@@ -203,6 +238,14 @@ export default function App() {
                   src={artifactUrl(issue.evidence[0].artifact_ref)}
                   alt={"Evidence crop for " + displayClassName(issue.class_name)}
                 />
+              )}
+              {issue.vlm_review && (
+                <div className="vlm-review" data-testid={"vlm-review-" + issue.class_name}>
+                  <p className="section-kicker">ADVISORY VLM REVIEW</p>
+                  <strong>{issue.vlm_review.verdict.toUpperCase()}</strong>
+                  <span>{issue.vlm_review.rationale}</span>
+                  <small>{issue.vlm_review.provider} · {issue.vlm_review.latency_ms}ms</small>
+                </div>
               )}
               <dl>
                 <div><dt>Policy</dt><dd>{issue.decision.outcome}</dd></div>

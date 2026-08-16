@@ -20,6 +20,14 @@ export interface Evidence {
   bbox_xyxy: number[];
 }
 
+export interface VlmReview {
+  verdict: "confirm" | "reject" | "escalate";
+  rationale: string;
+  provider: string;
+  model?: string | null;
+  latency_ms: number;
+}
+
 export interface FacadeIssue {
   issue_id: string;
   track_id: number;
@@ -32,6 +40,7 @@ export interface FacadeIssue {
   status: IssueStatus;
   action_taken?: string | null;
   verification_reason?: string | null;
+  vlm_review?: VlmReview | null;
 }
 
 export interface MissionEvent {
