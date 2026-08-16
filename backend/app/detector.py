@@ -99,7 +99,11 @@ class YoloDetector:
         if result.boxes is not None:
             for box in result.boxes:
                 class_id = int(box.cls.item())
-                class_name = DefectClass(str(names[class_id]))
+                raw_name = str(names[class_id])
+                try:
+                    class_name = DefectClass(raw_name)
+                except ValueError:
+                    class_name = DefectClass.CLEANABLE
                 confidence = float(box.conf.item())
                 x1, y1, x2, y2 = (round(float(value), 3) for value in box.xyxy[0].tolist())
                 detections.append(

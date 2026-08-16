@@ -94,3 +94,47 @@ export interface MissionResult {
   replay_digest: string;
   inference_benchmark: Record<string, number>;
 }
+
+export interface DetectionItem {
+  detection_id: string;
+  class_name: string;
+  display_name: string;
+  confidence: number;
+  bbox_xyxy: number[];
+  normalized_bbox: number[];
+  panel_id: string;
+  area_fraction: number;
+  severity_score: number;
+  classification_type: "structural" | "surface" | "minor";
+}
+
+export interface InspectionRecommendation {
+  outcome: "CLEAN" | "ESCALATE" | "REVIEW";
+  urgency: "HIGH" | "MEDIUM" | "LOW" | "NONE";
+  badge: string;
+  summary: string;
+  action_steps: string[];
+}
+
+export interface ImageInspectionResult {
+  inspection_id: string;
+  filename: string;
+  timestamp: number;
+  dimensions: { width: number; height: number };
+  model_version: string;
+  detections_count: number;
+  detections: DetectionItem[];
+  health_score: number;
+  health_status: "HEALTHY" | "SURFACE_ATTENTION_NEEDED" | "CRITICAL_STRUCTURAL_ALERT";
+  primary_recommendation: InspectionRecommendation;
+  vlm_review?: VlmReview | null;
+  annotated_image: string;
+}
+
+export interface SampleImage {
+  filename: string;
+  url: string;
+  title: string;
+  description: string;
+  expected_type: string;
+}
