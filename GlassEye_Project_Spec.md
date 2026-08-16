@@ -374,8 +374,7 @@ glasseye/
 │   └── run_demo.py
 ├── docs/
 │   ├── architecture.md
-│   ├── data-card.md
-│   └── demo-runbook.md
+│   └── data-card.md
 └── README.md
 ```
 
