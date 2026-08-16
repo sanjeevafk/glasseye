@@ -2,7 +2,12 @@
 # artifacts at boot, so only source code is needed in the image.
 datasets/
 data/
-models/
+models/*
+!models/glasseye-yolo-v1/
+models/glasseye-yolo-v1/*
+!models/glasseye-yolo-v1/best.pt
+!models/glasseye-yolo-v1/model_manifest.json
+models/glasseye-yolo-v1/training_runs/
 artifacts/
 .venv/
 backend/.venv/

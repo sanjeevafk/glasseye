@@ -101,6 +101,29 @@ def test_demo_runs_structural_through_advisory_vlm(tmp_path):
     assert result_event.payload["verdict"] == "escalate"
 
 
+def test_load_latest_demo_returns_baked_result(tmp_path):
+    from app.demo import load_latest_demo
+
+    runner = DemoRunner(
+        detector=DeterministicTestDetector(),
+        model_path=Path(tmp_path / "model.pt"),
+        output_root=tmp_path / "artifacts" / "demo",
+        vlm_provider=FixtureVlmProvider(),
+    )
+    runner.run()
+
+    baked = load_latest_demo(output_root=tmp_path / "artifacts" / "demo")
+    assert baked is not None
+    assert baked.state == "COMPLETE"
+    assert len(baked.events) > 0
+
+
+def test_load_latest_demo_returns_none_without_result(tmp_path):
+    from app.demo import load_latest_demo
+
+    assert load_latest_demo(output_root=tmp_path / "artifacts" / "demo") is None
+
+
 def test_demo_vlm_failure_aborts_instead_of_cleaning(tmp_path):
     from app.demo import DemoExecutionError
     from app.events import EventLog

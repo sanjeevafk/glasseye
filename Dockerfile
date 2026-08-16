@@ -32,17 +32,29 @@ RUN npm run build
 
 # Runtime image.
 FROM base
-COPY --from=frontend /frontend/dist /app/frontend/dist
 COPY backend/ /app/backend/
 COPY scripts/ /app/scripts/
 COPY Makefile /app/Makefile
 
+# The deterministic demo checkpoint ships in the image so the build skips
+# retraining (train_yolo.py --if-missing). 6 MB vs 5-10 min of CPU training
+# on every deploy.
+COPY models/glasseye-yolo-v1/ /app/models/glasseye-yolo-v1/
+
 # Generate the deterministic demo at build time so the image ships with the
 # dataset, checkpoint, scenario video, and mission events baked in. Boot then
 # starts instantly instead of retraining on every cold start.
+#
+# NOTE: this RUN sits BEFORE the frontend dist COPY on purpose. The demo only
+# depends on backend/ + scripts/, so frontend-only changes reuse this cached
+# layer and deploys stay fast (~3-4 min) instead of retraining the model.
 RUN python scripts/prepare_synthetic_dataset.py \
     && python scripts/validate_dataset.py \
     && python scripts/train_yolo.py --if-missing \
     && python scripts/run_demo.py
+
+# Frontend dist copied LAST so frontend-only changes never invalidate the
+# demo-generation layer above.
+COPY --from=frontend /frontend/dist /app/frontend/dist
 
 CMD ["sh", "-c", "PYTHONPATH=backend uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

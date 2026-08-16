@@ -1,0 +1,12 @@
+{
+  "model_version": "glasseye-yolo-v1",
+  "base_model": "yolov8n.pt",
+  "ultralytics_version": "8.4.120",
+  "dataset_hash": "912b87fd0813a98a135dce45ec5c5cea44647ee64b338ce7c766382b9fdd3450",
+  "class_map": {
+    "0": "cleanable_surface_issue",
+    "1": "structural_issue"
+  },
+  "best_checkpoint": "/home/sanjeev/Downloads/glasseye/models/glasseye-yolo-v1/best.pt",
+  "best_checkpoint_sha256": "1684179f0ba9fef37f10d320a262f633d11f654bcf76e5c8be546a3ab8db8e6a"
+}
