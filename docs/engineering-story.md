@@ -21,11 +21,11 @@ Across 6 iterative engineering milestones, we transitioned from an initial synth
           │
 [Phase 3: Multi-Domain]    ──> 15.1% AP@50 (+60.8% gain on BFDD)
           │
-[Phase 4: SAHI Slicing]    ──> Resolves sub-pixel hairline decimation
+[Phase 4: SAHI High-Resolution Tiling] ──> Resolves sub-pixel hairline decimation
           │
-[Phase 5: 640px 3-Way]     ──> 35.5% Recall / 0.2316 AP@50 on UAV2K
+[Phase 5: 640px 3-Way]                 ──> 35.5% Recall / 0.2316 AP@50 on UAV2K
           │
-[Phase 6: V2 SOTA Model]   ──> 61.10% Drone Recall (322 / 527 defects captured)
+[Phase 6: Current Best Model]          ──> 61.10% Drone Recall (322 / 527 defects captured)
 ```
 
 ---
@@ -39,9 +39,9 @@ The following table traces the empirical benchmark performance across every mode
 | **M1: Baseline** | Synthetic Procedural (20 imgs) | 320px | 0 / 527 | 0.0% | 0.0000 | Baseline proof of concept; zero out-of-domain transfer. |
 | **M2: Real Data** | BFDD Building Defect Dataset (600 imgs) | 320px | 0 / 527 | 0.0% | 0.0000 | Learned real facade textures; struggled on distant aerial shots. |
 | **M3: Combined** | BFDD + CUBIT Concrete (1,299 imgs) | 320px | 7 / 527 | 1.3% | 0.0132 | Multi-domain bridge data improved general feature extraction. |
-| **M4: SAHI** | BFDD + CUBIT + SAHI Slicing | 320px | 46 / 527 | 8.7% | 0.0362 | Overlapping patch sliding-window stopped crack decimation. |
-| **M5: 640px 3-Way** | BFDD + CUBIT + UAV2K (2,899 imgs) | 640px | 187 / 527 | 35.5% | 0.2316 | 4× sensor area + aerial drone holdout training. |
-| **M6: SOTA (Current)**| Fine-Tuned 3-Way Unified + SAHI | 640px | **322 / 527** | **`61.10%`** | **`0.2774`** | **SOTA record: Captures 61.1% of all real drone defects.** |
+| **M4: SAHI** | BFDD + CUBIT + SAHI High-Resolution Tiling | 320px | 46 / 527 | 8.7% | 0.0362 | Overlapping patch sliding-window stopped crack decimation. |
+| **M5: 640px 3-Way** | BFDD + CUBIT + UAV2K (2,899 imgs) | 640px | 187 / 527 | 35.5% | 0.2316 | 4× input pixels + aerial drone holdout training. |
+| **M6: Current Best**| Fine-Tuned 3-Way Unified + SAHI | 640px | **322 / 527** | **`61.10%`** | **`0.2774`** | **Current Best: Captures 61.1% of all real drone defects.** |
 
 ---
 
@@ -51,9 +51,9 @@ The following table traces the empirical benchmark performance across every mode
 graph TD
     A[M1: Synthetic Dataset] -->|Domain Gap Failure| B[M2: BFDD Real Façades]
     B -->|Need Concrete Microstructure| C[M3: BFDD + CUBIT Multi-Domain]
-    C -->|Sub-pixel Blur Bottleneck| D[M4: Sliced Aided Hyper Inference]
+    C -->|Sub-pixel Blur Bottleneck| D[M4: SAHI High-Resolution Tiling]
     D -->|Scale to Aerial Resolutions| E[M5: 640px Native 3-Way Model]
-    E -->|Optimized Convergence| F[M6: Current SOTA Production Model]
+    E -->|Optimized Convergence| F[M6: Current Best Model]
 ```
 
 ### Phase 1: The Synthetic Baseline (Failure as a Teacher)
@@ -71,9 +71,9 @@ graph TD
 - **Outcome:** The untouched BFDD test benchmark jumped from **0.0940 to 0.1512 AP@50 (+60.8% gain)** and recall reached **20.1% (+42.5% gain)**.
 - **Takeaway:** Training on diverse civil engineering infrastructure (bridges, abutments, beams) directly improved model generalization on residential and commercial building façades.
 
-### Phase 4: Sliced Aided Hyper Inference (SAHI)
+### Phase 4: SAHI High-Resolution Tiling
 - **The Bottleneck:** Standard YOLO downscaling squashes high-resolution drone frames (e.g. 4000×2250) down to 320×320. Thin structural cracks (2–4 pixels wide in camera space) were crushed into sub-pixel blur before reaching the first convolution layer.
-- **The Solution:** Implemented **SAHI** ([`docs/sahi-inference.md`](sahi-inference.md)):
+- **The Solution:** Implemented **SAHI High-Resolution Tiling** ([`docs/sahi-inference.md`](sahi-inference.md)):
   - Slices frames into overlapping 480×480 patches (25% overlap).
   - Runs native-resolution YOLO inference per tile with `torch.inference_mode()`.
   - Translates patch coordinates back to full image space and merges overlapping predictions using Non-Maximum Suppression (IoU = 0.45).
@@ -89,7 +89,7 @@ graph TD
 
 ![UAV2K Real-Defect Detection Improvement](uav2k-benchmark-comparison.png)
 
-### Phase 6: V2 SOTA Model (Current State-of-the-Art)
+### Phase 6: Current Best Model
 - **Action:** Final model convergence run uploaded to [`sanjeevafk/glasseye-yolo`](https://huggingface.co/sanjeevafk/glasseye-yolo).
 - **Outcome:**
   - True Positives reached **`322 out of 527`** real defects.

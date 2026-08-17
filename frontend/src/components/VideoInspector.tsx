@@ -199,7 +199,7 @@ export function VideoInspector() {
               value={modelChoice}
               onChange={(e) => setModelChoice(e.target.value)}
             >
-              <option value="glasseye-yolo-bfdd-cubit-v1">3-Way Unified 640px (Production SOTA)</option>
+              <option value="glasseye-yolo-bfdd-cubit-v1">3-Way Unified 640px (Current Best Model)</option>
               <option value="glasseye-yolo-v1">Synthetic Two-Class Model</option>
             </select>
           </div>
