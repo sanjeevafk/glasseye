@@ -4,7 +4,7 @@
 
 GlassEye is an end-to-end building façade inspection platform combining fine-tuned YOLO defect detection, 4×3 panel localization, automated policy recommendations, advisory VLM reviews, and a closed-loop drone mission simulator with a 3D Three.js dashboard.
 
-[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-glasseye--yolo--bfdd--cubit--v1-blue)](https://huggingface.co/sanjeevafk/glasseye-yolo-bfdd-cubit-v1)
+[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-glasseye--yolo-blue)](https://huggingface.co/sanjeevafk/glasseye-yolo)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-brightgreen)](https://glasseye-td75.onrender.com)
 
 ---
@@ -66,9 +66,9 @@ npm --prefix frontend run test:e2e
 
 ## Trained Model Checkpoints
 
-The active production model is trained on real Building Façade Defect Dataset (BFDD) and CUBIT concrete defect data:
+The active production model is trained on real Building Façade Defect Dataset (BFDD), CUBIT concrete defects, and high-altitude UAV2K aerial drone surveys:
 
-- **Hugging Face Hub**: [`sanjeevafk/glasseye-yolo-bfdd-cubit-v1`](https://huggingface.co/sanjeevafk/glasseye-yolo-bfdd-cubit-v1)
+- **Hugging Face Hub**: [`sanjeevafk/glasseye-yolo`](https://huggingface.co/sanjeevafk/glasseye-yolo)
 - **Local Checkpoint**: `models/glasseye-yolo-bfdd-cubit-v1/best.pt`
 
 ### Python Inference Snippet

@@ -15,7 +15,7 @@ from ultralytics import YOLO
 HF_TOKEN = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
 DATASET_REPO = os.environ.get("DATASET_REPO", "sanjeevafk/glasseye-bfdd-cubit-uav2k-640")
 ZIP_NAME = "glasseye_3way_dataset_640.zip"
-MODEL_REPO = "sanjeevafk/glasseye-yolo-bfdd-cubit-v1"
+MODEL_REPO = "sanjeevafk/glasseye-yolo"
 
 
 def main():
