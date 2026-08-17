@@ -111,7 +111,7 @@ overwritten.
 
 ## 3-Way Unified 640px Training (BFDD + CUBIT + UAV2K, 2026-08-17)
 
-To create a production-grade model capable of detecting both close-range facade cracks and distant aerial drone-scale defects, a 3-way unified corpus of **2,899 training images** was packaged (`sanjeevafk/glasseye-bfdd-cubit-uav2k-640`) and fine-tuned for 50 epochs on a Tesla T4 GPU.
+To create a production-grade model capable of detecting both close-range facade cracks and distant aerial drone-scale defects, a 3-way unified corpus of **2,899 training images** was packaged (`sanjeevafk/glasseye-dataset`) and fine-tuned for 50 epochs on a Tesla T4 GPU.
 
 > [!IMPORTANT]
 > **Evaluation Set Taxonomy (Explicit Separation):**

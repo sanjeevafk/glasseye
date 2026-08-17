@@ -16,7 +16,7 @@ from huggingface_hub import HfApi, hf_hub_download
 from ultralytics import YOLO
 
 HF_TOKEN = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
-BASE_DATASET_REPO = "sanjeevafk/glasseye-bfdd-cubit-uav2k-640"
+BASE_DATASET_REPO = "sanjeevafk/glasseye-dataset"
 MODEL_REPO = "sanjeevafk/glasseye-yolo"
 OUTPUT_DIR = Path("/content/glasseye_v4_dataset_640")
 
