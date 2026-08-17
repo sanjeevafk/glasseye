@@ -131,9 +131,10 @@ Evaluated on the 200-image building-disjoint UAV2K test set (527 ground-truth de
 | **Synthetic Baseline** | 0 | 0.0% | 0.0% | 0.0000 | 3 |
 | **BFDD + CUBIT (320px + SAHI)** | 46 | 7.09% | 8.73% | 0.0362 | 603 |
 | **BFDD + CUBIT (640px + SAHI)** | 60 | 11.19% | 11.39% | 0.0357 | 476 |
-| **3-Way Unified (640px + SAHI)** | **`187`** | **`35.76%`** | **`35.48%`** | **`0.2316`** | **336 (-30%)** |
+| **3-Way Unified V1 (640px + SAHI)** | 187 | 35.76% | 35.48% | 0.2316 | 336 |
+| **3-Way Unified V2 (640px + SAHI)** | **`322`** | 18.25% | **`61.10%`** | **`0.2774`** | 1442 |
 
-*Takeaway: On untouched aerial drone captures, the 3-way unified model achieved a **3.2× increase in precision**, a **3.1× increase in recall**, and a **6.5× increase in AP@50** (0.0357 → 0.2316).*
+*Takeaway: On untouched aerial drone captures, SAHI inference with the updated 640px model pushed true defect recall to **61.10%** (322/527 ground truth defects captured) and reached a new benchmark record of **0.2774 AP@50**.*
 
 ---
 
