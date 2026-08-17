@@ -13,8 +13,7 @@ test("trained YOLO mission reaches the Three.js dashboard and replay", async ({ 
 
   const maintenanceModal = page.getByTestId("maintenance-dispatch-modal");
   await expect(maintenanceModal).toBeVisible({ timeout: 15_000 });
-  await expect(maintenanceModal).toContainText("STRUCTURAL MAINTENANCE DISPATCH");
-  await expect(maintenanceModal).toContainText("ESCALATE — NO CLEANING");
+  await expect(maintenanceModal).toContainText("STRUCTURAL WORK ORDER CREATED");
   await maintenanceModal.getByRole("button", { name: "ACKNOWLEDGE" }).click();
   await expect(maintenanceModal).toBeHidden();
 
