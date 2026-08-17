@@ -5,14 +5,19 @@
 FROM python:3.12-slim AS base
 
 ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     YOLO_CONFIG_DIR=/app/.ultralytics \
-    MPLCONFIGDIR=/app/.matplotlib
+    YOLO_SETTINGS_DISABLED=1 \
+    OMP_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    MPLCONFIGDIR=/app/.matplotlib \
+    PYTHONPATH=/app/backend
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 libglib2.0-0 curl ffmpeg && rm -rf /var/lib/apt/lists/*
+    curl ffmpeg && rm -rf /var/lib/apt/lists/*
 
 # Backend + deps. CPU-only torch: the deterministic demo runs fine on CPU
 # and this avoids multi-GB CUDA wheels.
@@ -76,4 +81,4 @@ RUN sh -c 'python scripts/prepare_synthetic_dataset.py \
 # demo-generation layer above.
 COPY --from=frontend /frontend/dist /app/frontend/dist
 
-CMD ["sh", "-c", "PYTHONPATH=backend uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --limit-concurrency 10 --timeout-keep-alive 5 --backlog 128"]

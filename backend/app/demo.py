@@ -537,6 +537,17 @@ class DemoRunner:
         return result
 
 
+_LATEST_DEMO_CACHE: tuple[float, MissionResult] | None = None
+
+
 def load_latest_demo(output_root: Path | None = None) -> MissionResult | None:
+    global _LATEST_DEMO_CACHE
     path = (output_root or artifacts_root() / "demo") / "latest.json"
-    return MissionResult.model_validate_json(path.read_text(encoding="utf-8")) if path.exists() else None
+    if not path.exists():
+        return None
+    mtime = path.stat().st_mtime
+    if _LATEST_DEMO_CACHE is not None and _LATEST_DEMO_CACHE[0] == mtime:
+        return _LATEST_DEMO_CACHE[1]
+    result = MissionResult.model_validate_json(path.read_text(encoding="utf-8"))
+    _LATEST_DEMO_CACHE = (mtime, result)
+    return result
