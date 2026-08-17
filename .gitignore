@@ -39,3 +39,4 @@ backend/*.egg-info/
 yolo*.pt
 *.log
 .DS_Store
+docs/*diagram*
