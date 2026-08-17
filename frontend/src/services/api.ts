@@ -119,6 +119,44 @@ export async function loadSampleImages(): Promise<SampleImage[]> {
   }
 }
 
+export async function inspectVideo(
+  fileOrSample: File | Blob | { sampleFilename: string },
+  options: { confidence?: number; sampleFps?: number; modelChoice?: string } = {}
+): Promise<import("../types").VideoInspectionResult> {
+  const formData = new FormData();
+  if (fileOrSample instanceof Blob) {
+    formData.append("file", fileOrSample);
+  } else if (fileOrSample && typeof fileOrSample === "object" && "sampleFilename" in fileOrSample) {
+    formData.append("sample_filename", fileOrSample.sampleFilename);
+  }
+  if (options.confidence !== undefined) {
+    formData.append("confidence", options.confidence.toString());
+  }
+  if (options.sampleFps !== undefined) {
+    formData.append("sample_fps", options.sampleFps.toString());
+  }
+  if (options.modelChoice) {
+    formData.append("model_choice", options.modelChoice);
+  }
+
+  const response = await fetchWithRetry(backendUrl + "/api/inspect/video", {
+    method: "POST",
+    body: formData,
+    maxRetries: 2,
+  });
+  return jsonResponse<import("../types").VideoInspectionResult>(response);
+}
+
+export async function loadSampleVideos(): Promise<import("../types").SampleVideo[]> {
+  try {
+    const response = await fetchWithRetry(backendUrl + "/api/inspect/video/samples", { maxRetries: 2 });
+    if (!response.ok) return [];
+    return jsonResponse<import("../types").SampleVideo[]>(response);
+  } catch {
+    return [];
+  }
+}
+
 export function artifactUrl(reference: string): string {
   return backendUrl + "/" + reference.replace(/^\/+/, "");
 }

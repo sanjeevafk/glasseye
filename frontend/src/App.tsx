@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ImageInspector } from "./components/ImageInspector";
+import { VideoInspector } from "./components/VideoInspector";
 import { artifactUrl, checkServerHealth, loadLatestDemo, runDemo } from "./services/api";
 import { displayClassName, statusClass } from "./status";
 import type { MissionResult } from "./types";
@@ -108,10 +109,20 @@ export default function App() {
         </aside>
       )}
 
-      {/* Section 1: Interactive Image Inspector */}
+      {/* Navigation Quick Links */}
+      <nav className="mode-nav-bar" aria-label="Mission Control Modules">
+        <a href="#drone-video-scanner" className="mode-nav-link active">🎥 Aerial Drone Video Scanner</a>
+        <a href="#image-inspector" className="mode-nav-link">🖼️ High-Res Image Inspector</a>
+        <a href="#mission-control" className="mode-nav-link">🛰️ Closed-Loop 3D Digital Twin</a>
+      </nav>
+
+      {/* Section 1: Interactive Drone Flight Video Scanner */}
+      <VideoInspector />
+
+      {/* Section 2: Interactive High-Res Image Inspector */}
       <ImageInspector />
 
-      {/* Section 2: Deterministic Closed-Loop Simulation */}
+      {/* Section 3: Deterministic Closed-Loop Simulation */}
       <section className="hero" id="mission-control">
         <div>
           <p className="section-kicker">DETERMINISTIC CLOSED LOOP</p>

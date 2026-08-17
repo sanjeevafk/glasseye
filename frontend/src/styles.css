@@ -102,6 +102,38 @@ h3 {
   letter-spacing: 0.08em;
 }
 
+.mode-nav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-soft);
+  margin-bottom: 8px;
+}
+
+.mode-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--paper-soft);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+}
+
+.mode-nav-link:hover,
+.mode-nav-link.active {
+  background: rgba(235, 108, 54, 0.15);
+  border-color: var(--accent);
+  color: var(--paper);
+}
+
 .simulation-pill { color: var(--amber); border-color: rgba(232, 163, 61, 0.42); }
 
 .hero {
@@ -995,5 +1027,358 @@ dd { margin: 0; font-size: 0.78rem; line-height: 1.4; }
   50% {
     opacity: 1;
     transform: scale(1.2);
+  }
+}
+
+/* =========================================================================
+   Drone Video Inspector & Flight Heatmap Styles
+   ========================================================================= */
+
+.video-inspector-section {
+  margin-top: 32px;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.upload-dropzone {
+  border: 2px dashed rgba(235, 108, 54, 0.4);
+  border-radius: 10px;
+  background: rgba(22, 18, 13, 0.6);
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.upload-dropzone:hover {
+  border-color: var(--accent);
+  background: rgba(235, 108, 54, 0.08);
+}
+
+.dropzone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-icon {
+  font-size: 2rem;
+}
+
+.parameters-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.param-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.param-item label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+.param-item select,
+.param-item input[type="range"] {
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.flight-inspection-dashboard {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+  margin-top: 12px;
+}
+
+.video-player-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(14, 11, 7, 0.85);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+.video-viewport-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.main-video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud-overlay-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hud-box {
+  position: absolute;
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+  border-radius: 4px;
+  transition: all 0.15s ease-out;
+}
+
+.hud-box.structural {
+  border-color: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+.hud-tag {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  background: rgba(15, 12, 8, 0.9);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.timeline-scrubber {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.timeline-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.scrubber-track {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  overflow-x: auto;
+  padding: 6px 2px;
+}
+
+.scrubber-node {
+  flex: 1;
+  min-width: 18px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: rgba(30, 25, 20, 0.8);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.1s, border-color 0.1s;
+}
+
+.scrubber-node.active {
+  border-color: var(--accent);
+  transform: scaleY(1.2);
+}
+
+.scrubber-node.critical {
+  background: rgba(239, 68, 68, 0.35);
+  border-color: #ef4444;
+}
+
+.scrubber-node.warning {
+  background: rgba(245, 158, 11, 0.35);
+  border-color: #f59e0b;
+}
+
+.scrubber-node.nominal {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.defect-count-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.55rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.flight-telemetry-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.telemetry-card {
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.telemetry-card h3 {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0;
+}
+
+.panel-heatmap-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.heatmap-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.heatmap-cell {
+  background: rgba(25, 20, 15, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heatmap-cell:hover {
+  border-color: var(--accent);
+}
+
+.heatmap-cell.critical {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+.heatmap-cell.attention {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+}
+
+.heatmap-cell.nominal {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.heatmap-cell.selected {
+  outline: 2px solid var(--accent);
+}
+
+.cell-id {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.cell-count {
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.highlight-frames-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.highlight-frames-section h3 {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--muted);
+  margin: 0;
+}
+
+.highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.highlight-card {
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.highlight-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.highlight-thumb {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+}
+
+.highlight-meta {
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 960px) {
+  .flight-inspection-dashboard {
+    grid-template-columns: 1fr;
   }
 }
