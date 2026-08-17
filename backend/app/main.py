@@ -176,6 +176,62 @@ async def inspect_custom_image(
         raise HTTPException(status_code=500, detail=f"Image inspection failed: {exc}") from exc
 
 
+@app.post("/api/inspect/video")
+async def inspect_custom_video(
+    file: Annotated[UploadFile | None, File()] = None,
+    sample_filename: Annotated[str | None, Form()] = None,
+    confidence: Annotated[float, Form()] = 0.20,
+    sample_fps: Annotated[float, Form()] = 1.0,
+    model_choice: Annotated[str | None, Form()] = None,
+) -> dict:
+    """Extract frames from uploaded drone flight video or preset, run YOLOv8 defect detection,
+    and accumulate 4x3 facade panel damage heatmaps."""
+    try:
+        from .video_inspector import inspect_video_bytes, inspect_video_file
+
+        if file is not None and file.filename:
+            content = await file.read()
+            if not content:
+                raise HTTPException(status_code=400, detail="Uploaded video file is empty.")
+            if len(content) > 50 * 1024 * 1024:
+                raise HTTPException(status_code=400, detail="Video file exceeds 50 MB limit.")
+
+            result = inspect_video_bytes(
+                content,
+                filename=file.filename or "drone_flight.mp4",
+                sample_fps=sample_fps,
+                confidence=confidence,
+                model_choice=model_choice,
+            )
+            return result.model_dump(mode="json")
+
+        if sample_filename:
+            # Locate sample file
+            target_path = samples_root() / sample_filename
+            if not target_path.is_file() and (artifacts_root() / "samples" / sample_filename).is_file():
+                target_path = artifacts_root() / "samples" / sample_filename
+
+            if not target_path.is_file():
+                raise HTTPException(status_code=404, detail=f"Sample video not found: {sample_filename}")
+
+            result = inspect_video_file(
+                target_path,
+                filename=sample_filename,
+                sample_fps=sample_fps,
+                confidence=confidence,
+                model_choice=model_choice,
+            )
+            return result.model_dump(mode="json")
+
+        raise HTTPException(status_code=400, detail="No video file or sample_filename provided.")
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Video inspection failed: {exc}") from exc
+
+
 @app.get("/api/inspect/samples")
 def get_sample_images() -> list[dict]:
     """Return available preset sample facade images for quick testing."""
@@ -208,6 +264,46 @@ def get_sample_images() -> list[dict]:
                 "title": file.stem.replace("_", " ").title(),
                 "description": "Facade inspection test sample",
                 "expected_type": "sample",
+            },
+        )
+        url_path = f"/samples/{file.name}" if samples_dir == samples_root() else f"/artifacts/samples/{file.name}"
+        results.append(
+            {
+                "filename": file.name,
+                "url": url_path,
+                **info,
+            }
+        )
+    return results
+
+
+@app.get("/api/inspect/video/samples")
+def get_sample_videos() -> list[dict]:
+    """Return available preset drone flight inspection videos."""
+    samples_dir = samples_root()
+    if not any(samples_dir.glob("*.mp4")) and (artifacts_root() / "samples").is_dir():
+        samples_dir = artifacts_root() / "samples"
+    samples_dir.mkdir(parents=True, exist_ok=True)
+    results = []
+    metadata = {
+        "drone_flight_preinspection.mp4": {
+            "title": "Tower Pre-Inspection Flight (Active Defects)",
+            "description": "Full facade vertical traversal capturing concrete fractures and surface dirt",
+            "expected_type": "defect_scan",
+        },
+        "drone_flight_reinspection.mp4": {
+            "title": "Post-Remediation Verification Flight",
+            "description": "Post-operation follow-up scan confirming clean panels and isolated structural zones",
+            "expected_type": "verification_scan",
+        },
+    }
+    for file in sorted(samples_dir.glob("*.mp4")):
+        info = metadata.get(
+            file.name,
+            {
+                "title": file.stem.replace("_", " ").title(),
+                "description": "Drone flight inspection clip",
+                "expected_type": "flight_sample",
             },
         )
         url_path = f"/samples/{file.name}" if samples_dir == samples_root() else f"/artifacts/samples/{file.name}"

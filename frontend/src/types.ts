@@ -138,3 +138,51 @@ export interface SampleImage {
   description: string;
   expected_type: string;
 }
+
+export interface VideoFrameDetection {
+  frame_index: number;
+  timestamp_seconds: number;
+  detections_count: number;
+  detections: DetectionItem[];
+  thumbnail_data_uri: string | null;
+  has_critical_defect: boolean;
+}
+
+export interface PanelDamageSummary {
+  panel_id: string;
+  row: number;
+  col: number;
+  defect_count: number;
+  max_severity: number;
+  primary_type: "structural" | "surface" | "nominal";
+  status: "CRITICAL" | "ATTENTION" | "NOMINAL";
+}
+
+export interface VideoInspectionResult {
+  inspection_id: string;
+  filename: string;
+  video_url?: string | null;
+  timestamp: number;
+  duration_seconds: number;
+  fps: number;
+  total_video_frames: number;
+  sampled_frames_count: number;
+  model_version: string;
+  total_detections_count: number;
+  structural_defect_count: number;
+  surface_defect_count: number;
+  health_score: number;
+  health_status: "HEALTHY" | "SURFACE_ATTENTION_NEEDED" | "CRITICAL_STRUCTURAL_ALERT";
+  primary_recommendation: InspectionRecommendation;
+  panel_damage_map: Record<string, PanelDamageSummary>;
+  frames: VideoFrameDetection[];
+  highlight_frames: VideoFrameDetection[];
+}
+
+export interface SampleVideo {
+  filename: string;
+  url: string;
+  title: string;
+  description: string;
+  expected_type: string;
+}
