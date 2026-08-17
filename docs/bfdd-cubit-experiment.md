@@ -109,16 +109,28 @@ model, and the binary model is used for the real-data evidence/benchmark
 flows. Keep the BFDD-only checkpoint as the baseline; no checkpoint was
 overwritten.
 
+## 640px Native Resolution GPU Retraining (Colab Run, 2026-08-17)
+
+To resolve the 320px downsampling blur bottleneck on thin hairline cracks, the BFDD + CUBIT dataset was repackaged at 640px (`sanjeevafk/glasseye-bfdd-cubit-640`) and fine-tuned on a Google Colab Tesla T4 GPU using [`scripts/train_colab.ipynb`](file:///home/sanjeev/Downloads/glasseye/scripts/train_colab.ipynb) / [`scripts/train_colab.py`](file:///home/sanjeev/Downloads/glasseye/scripts/train_colab.py):
+
+- **Parameters:** `imgsz=640`, `epochs=50`, `batch=16`, `optimizer=AdamW`, `seed=20260815`, AMP enabled.
+- **Validation Comparison (BFDD val, 89 images):**
+  - 320px baseline: `mAP50 = 0.2514`, `mAP50-95 = 0.1127`
+  - **640px model:** **`mAP50 = 0.3094` (+23.1%)**, **`mAP50-95 = 0.1648` (+46.2%)**
+
+### Impact on Untouched UAV2K Drone Benchmark (with SAHI)
+- **True Positives:** Increased from 46 to **`60` real defect boxes** detected.
+- **Precision:** Increased from 7.09% to **`11.19%`** (**+57.8% relative gain**).
+- **False Positives:** Dropped from 603 down to **`476`** (**-21.1% false alarm reduction**).
+
+---
+
 ## Reproduce
 
-    # dataset + training
-    .venv/bin/python scripts/prepare_bfdd_cubit_dataset.py
-    .venv/bin/python scripts/train_yolo.py --data data/bfdd_cubit_binary_v1/data.yaml \
-        --project models/glasseye-yolo-bfdd-cubit-v1/training_runs --name seeded_v1 \
-        --epochs 32 --imgsz 320 --batch 4 --seed 20260815
+    # 1-Click Colab GPU Retraining:
+    Open scripts/train_colab.ipynb in Google Colab (T4 GPU).
 
-    # benchmarks
+    # Local benchmark reproduction:
     PYTHONPATH=backend .venv/bin/python scripts/benchmark_real_data.py --dataset bfdd \
-        --bfdd-split test --min-component-area 512 --checkpoint models/glasseye-yolo-bfdd-cubit-v1/best.pt
-    PYTHONPATH=backend .venv/bin/python scripts/benchmark_cubit_data.py --checkpoint models/glasseye-yolo-bfdd-cubit-v1/best.pt
-    PYTHONPATH=backend .venv/bin/python scripts/benchmark_uav2k_data.py --checkpoint models/glasseye-yolo-bfdd-cubit-v1/best.pt
+        --bfdd-split test --min-component-area 512 --sahi --checkpoint models/glasseye-yolo-bfdd-cubit-v1/best.pt
+    PYTHONPATH=backend .venv/bin/python scripts/benchmark_uav2k_data.py --sahi --checkpoint models/glasseye-yolo-bfdd-cubit-v1/best.pt

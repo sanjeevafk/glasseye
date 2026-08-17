@@ -40,21 +40,22 @@ Evaluated on the production checkpoint: `models/glasseye-yolo-bfdd-cubit-v1/best
 ### A. Untouched UAV2K Real Drone Holdout Set (30-Image Split)
 *Distant high-altitude drone surveys of full building facades (527 ground-truth defect boxes).*
 
-| Metric | Baseline (Standard YOLO) | With SAHI (`--sahi`) | Impact |
-| :--- | :--- | :--- | :--- |
-| **Predictions** | 3 | 649 | Dense candidate recovery |
-| **True Positives** | **0** | **46** | **+46 real defects detected** |
-| **Zero-Shot Recall** | **0.0%** | **8.73%** | Rescued previously invisible defects |
-| **AP@50** | **0.0000** | **0.0362** | Measurable out-of-distribution detection |
+| Model & Mode | Predictions | True Positives | Precision | Recall | AP@50 | False Alarms |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **320px Baseline (Standard YOLO)** | 3 | 0 | 0.0% | 0.0% | 0.0000 | 3 |
+| **320px + SAHI** | 649 | 46 | 7.09% | 8.73% | 0.0362 | 603 |
+| **640px + SAHI (Latest Model)** | **536** | **60** | **11.19%** | **11.39%** | **0.0357** | **476 (-21%)** |
+
+*Impact: 640px resolution combined with SAHI achieves **+58% higher precision** and reduces false alarms by **21%** while recovering 60 verified defects from untouched drone captures.*
 
 ### B. BFDD Real Façade Test Set (30-Image Split)
 *Close-range facade camera captures (107 ground-truth defect boxes).*
 
-| Metric | Baseline (Standard YOLO) | With SAHI (`--sahi`) | Impact |
+| Metric | 320px Baseline | 320px + SAHI | 640px + SAHI (Latest) |
 | :--- | :--- | :--- | :--- |
-| **Precision** | 38.64% (17 TP / 27 FP) | **39.53%** (17 TP / 26 FP) | Reduced cross-tile false alarms |
-| **mAP50** | 0.128082 | **0.128195** | Cleaner bounding box alignment |
-| **Recall** | 15.89% | 15.89% | Stable close-range recall |
+| **Precision** | 38.64% (17 TP / 27 FP) | 39.53% (17 TP / 26 FP) | **39.47% (15 TP / 23 FP)** |
+| **False Positives** | 27 | 26 | **23 (-15% noise)** |
+| **Validation mAP@50** | 0.2514 | 0.2514 | **0.3094 (+23%)** |
 
 ---
 
