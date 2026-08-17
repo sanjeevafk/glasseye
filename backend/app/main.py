@@ -27,9 +27,7 @@ class CachedStaticFiles(StaticFiles):
         return resp
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Pre-warm YOLO model and constrain PyTorch CPU threads for 512 MB Render Free Tier
+def _warmup_worker() -> None:
     try:
         import torch
 
@@ -45,6 +43,25 @@ async def lifespan(app: FastAPI):
         detector.predict_frame(dummy, frame_id="warmup", timestamp=0.0, image_id="warmup")
     except Exception:
         pass
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Constrain PyTorch threads immediately
+    try:
+        import torch
+
+        torch.set_num_threads(1)
+        try:
+            torch.set_num_interop_threads(1)
+        except RuntimeError:
+            pass
+    except Exception:
+        pass
+    # Warm up YOLO model asynchronously so health checks respond in <5ms
+    import asyncio
+
+    asyncio.get_running_loop().run_in_executor(None, _warmup_worker)
     yield
 
 
