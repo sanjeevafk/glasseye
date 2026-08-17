@@ -13,13 +13,14 @@ from huggingface_hub import HfApi, hf_hub_download
 from ultralytics import YOLO
 
 HF_TOKEN = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
-DATASET_REPO = "sanjeevafk/glasseye-bfdd-cubit-640"
+DATASET_REPO = os.environ.get("DATASET_REPO", "sanjeevafk/glasseye-bfdd-cubit-uav2k-640")
+ZIP_NAME = "glasseye_3way_dataset_640.zip"
 MODEL_REPO = "sanjeevafk/glasseye-yolo-bfdd-cubit-v1"
 
 
 def main():
     print("==================================================")
-    print("🚀 GLASSEYE YOLOv8 640px CLOUD GPU TRAINING")
+    print("🚀 GLASSEYE YOLOv8 640px 3-WAY (BFDD+CUBIT+UAV2K) TRAINING")
     print("==================================================")
 
     # 1. Device check
@@ -31,12 +32,12 @@ def main():
         print("⚠️ Warning: Running on CPU (recommend switching to T4 GPU in Colab Runtime)")
 
     # 2. Download dataset from Hugging Face
-    dataset_dir = Path("./glasseye_dataset_640")
+    dataset_dir = Path("./glasseye_3way_dataset_640")
     if not dataset_dir.exists():
-        print(f"\n📥 Downloading 640px dataset from Hugging Face ({DATASET_REPO})...")
+        print(f"\n📥 Downloading 640px 3-way dataset from Hugging Face ({DATASET_REPO})...")
         zip_file = hf_hub_download(
             repo_id=DATASET_REPO,
-            filename="glasseye_dataset_640.zip",
+            filename=ZIP_NAME,
             repo_type="dataset",
             token=HF_TOKEN,
         )
