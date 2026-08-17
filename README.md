@@ -21,7 +21,8 @@ GlassEye is an end-to-end building façade inspection platform combining fine-tu
 
 ## Features
 
-- **Interactive Façade Scanner**: Upload any building façade photo or choose 1-click test presets to get instant YOLO defect bounding boxes, 4×3 panel grid coordinates, and a 0–100 Façade Integrity Index.
+- **Aerial Drone Video Scanner**: Upload drone survey flight recordings (MP4/WebM/MOV) or choose 1-click flight presets. Runs native-resolution YOLO inference with configurable frame sampling, synchronized video playback with live bounding-box HUD, an interactive flight timeline scrubber, and a 4×3 cumulative façade damage heatmap.
+- **Interactive Façade Scanner**: Upload high-resolution building façade photos or choose 1-click test presets to get instant YOLO defect bounding boxes, 4×3 panel grid coordinates, and a 0–100 Façade Integrity Index.
 - **Automated Dispatch Policy**: Recommends actionable steps (`SIMULATED CLEAN APPROVAL`, `MANDATORY STRUCTURAL ESCALATION`, `MAINTENANCE SCHEDULE`).
 - **Advisory VLM Second Opinions**: Routes high-impact defect crops to a Vision-Language Model for independent second-opinion verification.
 - **Closed-Loop Drone Simulation**: Replays a full drone flight scenario with video inference, IOU tracking, simulated cleaning commands, and post-remediation verification.
