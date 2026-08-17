@@ -159,7 +159,7 @@ export function VideoInspector() {
             <p>
               <strong>{videoFile ? videoFile.name : selectedSample ? `Loaded preset: ${selectedSample.title}` : "Drop drone MP4 / WebM video here or click to browse"}</strong>
             </p>
-            <span className="subtle-text">Supports 1080p / 4K drone footage up to 50 MB</span>
+            <span className="subtle-text">Supports MP4, WebM, and MOV drone survey clips up to 50 MB</span>
           </div>
         </div>
 
