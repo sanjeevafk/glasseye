@@ -126,7 +126,7 @@ export default function App() {
           type="button"
           onClick={executeDemo}
           disabled={running}
-          data-testid="run-demo-button"
+          data-testid="run-demo"
         >
           {running ? "RUNNING YOLO INFERENCE…" : "RUN DETERMINISTIC DEMO"}
         </button>
@@ -151,7 +151,7 @@ export default function App() {
             aria-labelledby="escalation-modal-title"
             aria-modal="true"
             className="escalation-modal"
-            data-testid="escalation-modal"
+            data-testid="maintenance-dispatch-modal"
             role="dialog"
           >
             <p className="section-kicker">HUMAN-IN-THE-LOOP DISPATCH</p>

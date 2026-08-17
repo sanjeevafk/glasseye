@@ -8,6 +8,7 @@ const python = process.env.GLASSEYE_PYTHON ?? path.join(root, ".venv", "bin", "p
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  testMatch: /.*\.spec\.ts/,
   timeout: 180_000,
   fullyParallel: false,
   retries: 0,
