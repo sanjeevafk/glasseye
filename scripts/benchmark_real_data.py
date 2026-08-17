@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -147,8 +148,15 @@ def draw_overlay(
     return overlay
 
 
+sys.path.insert(0, str(ROOT / "backend"))
+
+
 def predict_binary(
-    model: object, image: np.ndarray, image_id: str, max_det: int = 20
+    model: object,
+    image: np.ndarray,
+    image_id: str,
+    max_det: int = 20,
+    use_sahi: bool = False,
 ) -> list[Prediction]:
     try:
         import torch
@@ -156,6 +164,11 @@ def predict_binary(
         device = "0" if torch.cuda.is_available() else "cpu"
     except ImportError:
         device = "cpu"
+
+    h, w = image.shape[:2]
+    all_raw_predictions: list[tuple[float, tuple[float, float, float, float], str]] = []
+
+    # 1. Global full-frame pass
     result = model.predict(
         source=image,
         conf=0.20,
@@ -166,16 +179,70 @@ def predict_binary(
         verbose=False,
     )[0]
     names = result.names
-    if result.boxes is None:
-        return []
+    if result.boxes is not None:
+        for box in result.boxes:
+            all_raw_predictions.append(
+                (
+                    float(box.conf.item()),
+                    tuple(float(value) for value in box.xyxy[0].tolist()),
+                    str(names[int(box.cls.item())]),
+                )
+            )
+
+    # 2. Sliced pass if SAHI enabled
+    if use_sahi and (h > 640 or w > 640):
+        from app.detector import _calculate_slices
+
+        slices = _calculate_slices(h, w, slice_size=480, overlap_ratio=0.25)
+        for y1, x1, y2, x2 in slices:
+            tile = image[y1:y2, x1:x2]
+            res_tile = model.predict(
+                source=tile,
+                conf=0.20,
+                iou=0.45,
+                imgsz=320,
+                device=device,
+                max_det=max_det,
+                verbose=False,
+            )[0]
+            if res_tile.boxes is not None:
+                for box in res_tile.boxes:
+                    bx1, by1, bx2, by2 = box.xyxy[0].tolist()
+                    all_raw_predictions.append(
+                        (
+                            float(box.conf.item()),
+                            (
+                                float(bx1 + x1),
+                                float(by1 + y1),
+                                float(bx2 + x1),
+                                float(by2 + y1),
+                            ),
+                            str(names[int(box.cls.item())]),
+                        )
+                    )
+
+    # 3. Non-Maximum Suppression across merged predictions
+    if use_sahi and len(all_raw_predictions) > 1:
+        all_raw_predictions.sort(key=lambda item: item[0], reverse=True)
+        kept_tuples: list[tuple[float, tuple[float, float, float, float], str]] = []
+        for score, bbox, class_name in all_raw_predictions:
+            should_keep = True
+            for _, k_bbox, k_class in kept_tuples:
+                if k_class == class_name and iou(bbox, k_bbox) > 0.45:
+                    should_keep = False
+                    break
+            if should_keep:
+                kept_tuples.append((score, bbox, class_name))
+        all_raw_predictions = kept_tuples[:max_det]
+
     return [
         Prediction(
             image_id=image_id,
-            score=float(box.conf.item()),
-            bbox_xyxy=tuple(float(value) for value in box.xyxy[0].tolist()),
-            class_name=str(names[int(box.cls.item())]),
+            score=score,
+            bbox_xyxy=bbox,
+            class_name=class_name,
         )
-        for box in result.boxes
+        for score, bbox, class_name in all_raw_predictions
     ]
 
 
@@ -214,6 +281,11 @@ def main() -> int:
         default="all",
         help="Use the deterministic BFDD binary-dataset split.",
     )
+    parser.add_argument(
+        "--sahi",
+        action="store_true",
+        help="Enable Sliced Aided Hyper Inference (SAHI) with cross-tile NMS merging.",
+    )
     args = parser.parse_args()
     if args.min_component_area < 1:
         raise ValueError("--min-component-area must be positive")
@@ -251,7 +323,7 @@ def main() -> int:
             raise ValueError(f"Could not read image: {image_path}")
         image_id = image_path.stem
         ground_truth[image_id] = mask_boxes(mask_path, args.min_component_area)
-        image_predictions = predict_binary(model, image, image_id)
+        image_predictions = predict_binary(model, image, image_id, use_sahi=args.sahi)
         predictions.extend(image_predictions)
         predictions_by_image[image_id] = image_predictions
         predicted_classes.update(
