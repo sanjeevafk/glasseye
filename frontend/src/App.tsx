@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { FacadeScene } from "./components/FacadeScene";
 import { ImageInspector } from "./components/ImageInspector";
-import { artifactUrl, loadLatestDemo, runDemo } from "./services/api";
+import { artifactUrl, checkServerHealth, loadLatestDemo, runDemo } from "./services/api";
 import { displayClassName, statusClass } from "./status";
 import type { MissionResult } from "./types";
+
+const FacadeScene = lazy(() =>
+  import("./components/FacadeScene").then((m) => ({ default: m.FacadeScene }))
+);
 
 function visibleEvents(result: MissionResult | null, cursor: number) {
   return result ? result.events.slice(0, cursor) : [];
@@ -21,6 +24,7 @@ function structuralEscalationEvent(result: MissionResult | null) {
 export default function App() {
   const [result, setResult] = useState<MissionResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const [serverWarming, setServerWarming] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cursor, setCursor] = useState(0);
@@ -29,13 +33,31 @@ export default function App() {
   const [showMaintenanceSignal, setShowMaintenanceSignal] = useState(false);
 
   useEffect(() => {
-    void loadLatestDemo()
-      .then((latest) => {
-        setResult(latest);
-        setCursor(latest?.events.length ?? 0);
-      })
-      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Unable to load demo"))
-      .finally(() => setLoading(false));
+    let active = true;
+    async function init() {
+      const isHealthy = await checkServerHealth();
+      if (!isHealthy && active) {
+        setServerWarming(true);
+      }
+      try {
+        const latest = await loadLatestDemo();
+        if (active) {
+          setResult(latest);
+          setCursor(latest?.events.length ?? 0);
+          setServerWarming(false);
+        }
+      } catch (reason: unknown) {
+        if (active) {
+          setError(reason instanceof Error ? reason.message : "Unable to load demo");
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    void init();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -79,6 +101,12 @@ export default function App() {
         </div>
         <div className="simulation-pill">SIMULATION ONLY · NO PHYSICAL ACTUATORS</div>
       </header>
+      {serverWarming && (
+        <aside className="server-warming-banner" role="status" aria-live="polite">
+          <span className="pulse-dot" />
+          <span>Render Free Tier instance is waking up from idle state (~15–25s cold start). Auto-connecting...</span>
+        </aside>
+      )}
 
       {/* Section 1: Interactive Image Inspector */}
       <ImageInspector />
@@ -96,37 +124,47 @@ export default function App() {
         <button
           className="run-button"
           type="button"
-          onClick={() => void executeDemo()}
+          onClick={executeDemo}
           disabled={running}
-          data-testid="run-demo"
+          data-testid="run-demo-button"
         >
-          {running ? "RUNNING YOLO INSPECTION…" : "RUN DETERMINISTIC DEMO"}
+          {running ? "RUNNING YOLO INFERENCE…" : "RUN DETERMINISTIC DEMO"}
         </button>
       </section>
 
-      {error && <p className="error" role="alert">{error}</p>}
+      {error && (
+        <div className="error-banner" role="alert" data-testid="error-banner">
+          {error}
+        </div>
+      )}
 
-      {!showActuatorSignal && showMaintenanceSignal && escalationEvent && (
-        <div className="actuator-backdrop" role="presentation">
+      {loading && (
+        <div className="loading-banner" data-testid="loading-indicator">
+          Loading GlassEye mission replay…
+        </div>
+      )}
+
+      {showMaintenanceSignal && escalationEvent && (
+        <div className="escalation-backdrop" role="presentation">
           <section
-            aria-describedby="maintenance-dispatch-detail"
-            aria-labelledby="maintenance-dispatch-title"
+            aria-describedby="escalation-modal-detail"
+            aria-labelledby="escalation-modal-title"
             aria-modal="true"
-            className="actuator-modal"
-            data-testid="maintenance-dispatch-modal"
+            className="escalation-modal"
+            data-testid="escalation-modal"
             role="dialog"
           >
-            <p className="section-kicker">DRONE BRAIN / MAINTENANCE SIGNAL</p>
-            <h2 id="maintenance-dispatch-title">STRUCTURAL MAINTENANCE DISPATCH</h2>
-            <p id="maintenance-dispatch-detail">
-              Target: facade panel {result?.issues.find((issue) => issue.issue_id === escalationEvent.issue_id)?.location.panel_id ?? "—"}.
-              A structural issue was escalated for human review; no cleaning actuator was engaged.
+            <p className="section-kicker">HUMAN-IN-THE-LOOP DISPATCH</p>
+            <h2 id="escalation-modal-title">STRUCTURAL WORK ORDER CREATED</h2>
+            <p id="escalation-modal-detail">
+              Structural damage detected on panel {result?.issues.find((issue) => issue.issue_id === escalationEvent.issue_id)?.location.panel_id ?? "—"}.
+              Autonomous cleaning was prohibited by policy. A human inspection ticket has been logged.
             </p>
-            <div className="command-readout">
-              <span>DISPATCH</span>
-              <strong>HUMAN STRUCTURAL REVIEW</strong>
-              <span>ACTION</span>
-              <strong>ESCALATE — NO CLEANING</strong>
+            <div className="ticket-readout">
+              <span>TICKET ID</span>
+              <strong>{String(escalationEvent.payload.ticket_id ?? escalationEvent.event_id)}</strong>
+              <span>PRIORITY</span>
+              <strong>{String(escalationEvent.payload.priority ?? "HIGH")}</strong>
             </div>
             <p className="simulation-note">Software dispatch signal only — no physical maintenance crew was notified.</p>
             <button type="button" onClick={() => setShowMaintenanceSignal(false)}>ACKNOWLEDGE</button>
@@ -162,8 +200,9 @@ export default function App() {
         </div>
       )}
 
-      <section className="metrics" aria-label="Mission metrics">
-        <div><span>MISSION</span><strong>{result?.state ?? (loading ? "LOADING" : "STANDBY")}</strong></div>
+      <section className="metrics-strip">
+        <div><span>MISSION</span><strong>{result?.mission_id ?? "STANDBY"}</strong></div>
+        <div><span>HEALTH</span><strong>{result?.state ?? "STANDBY"}</strong></div>
         <div><span>MODEL</span><strong>{result?.model_version ?? "—"}</strong></div>
         <div><span>EVENTS</span><strong>{result?.events.length ?? 0}</strong></div>
         <div><span>SEEDED SCENARIO</span><strong>{result?.scenario_seed ?? "—"}</strong></div>
@@ -179,7 +218,15 @@ export default function App() {
             <span className="subtle-badge">THREE.JS</span>
           </div>
           <ErrorBoundary>
-            <FacadeScene issues={result?.issues ?? []} />
+            <Suspense
+              fallback={
+                <div className="facade-canvas facade-fallback" data-testid="facade-canvas">
+                  <div className="fallback-note">Loading 3D Façade Scene…</div>
+                </div>
+              }
+            >
+              <FacadeScene issues={result?.issues ?? []} />
+            </Suspense>
           </ErrorBoundary>
           <div className="legend">
             <span><i className="dot green" /> resolved</span>

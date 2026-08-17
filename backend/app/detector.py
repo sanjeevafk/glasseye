@@ -36,6 +36,13 @@ def _get_cached_yolo(model_path: Path) -> Any:
             matplotlib_config = model_path.parents[2] / ".matplotlib"
             matplotlib_config.mkdir(parents=True, exist_ok=True)
             os.environ.setdefault("MPLCONFIGDIR", str(matplotlib_config))
+            import torch
+
+            torch.set_num_threads(1)
+            try:
+                torch.set_num_interop_threads(1)
+            except RuntimeError:
+                pass
             from ultralytics import YOLO
         except ImportError as exc:
             raise RuntimeError("Ultralytics is required; run make setup.") from exc
@@ -58,16 +65,16 @@ class YoloDetector:
         self.iou_threshold = iou_threshold
         self.image_size = image_size
         self.device = device
-        self._model = None
-        self.model_version = self._read_model_version()
-
-    def _read_model_version(self) -> str:
+        self._model: Any = None
         manifest_path = self.model_path.parent / "model_manifest.json"
-        if manifest_path.exists():
-            return str(json.loads(manifest_path.read_text(encoding="utf-8")).get("model_version", "glasseye-yolo-v1"))
-        return "glasseye-yolo-v1"
+        if manifest_path.is_file():
+            self.model_version = json.loads(manifest_path.read_text(encoding="utf-8"))[
+                "model_version"
+            ]
+        else:
+            self.model_version = self.model_path.parent.name
 
-    def _selected_device(self) -> str | None:
+    def _selected_device(self) -> str:
         if self.device is not None:
             return self.device
         try:
@@ -95,15 +102,18 @@ class YoloDetector:
         if self._model is None:
             self.load()
         assert self._model is not None
-        result = self._model.predict(
-            source=image_bgr,
-            conf=self.confidence,
-            iou=self.iou_threshold,
-            imgsz=self.image_size,
-            device=self._selected_device(),
-            verbose=False,
-            max_det=20,
-        )[0]
+        import torch
+
+        with torch.inference_mode():
+            result = self._model.predict(
+                source=image_bgr,
+                conf=self.confidence,
+                iou=self.iou_threshold,
+                imgsz=self.image_size,
+                device=self._selected_device(),
+                verbose=False,
+                max_det=20,
+            )[0]
         names = result.names
         detections: list[Detection] = []
         if result.boxes is not None:

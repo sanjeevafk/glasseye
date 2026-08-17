@@ -1,12 +1,27 @@
 import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
+import {
+  AmbientLight,
+  BoxGeometry,
+  Color,
+  type ColorRepresentation,
+  DirectionalLight,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  PerspectiveCamera,
+  Scene,
+  SphereGeometry,
+  TorusGeometry,
+  WebGLRenderer,
+} from "three";
 import type { FacadeIssue } from "../types";
 
 interface Props {
   issues: FacadeIssue[];
 }
 
-function markerColor(issue: FacadeIssue): THREE.ColorRepresentation {
+function markerColor(issue: FacadeIssue): ColorRepresentation {
   if (issue.status === "RESOLVED") return "#5fc98a";
   if (issue.status === "ESCALATED" || issue.status === "UNRESOLVED") return "#ff647c";
   if (issue.class_name === "structural_issue") return "#eb6c36";
@@ -49,81 +64,83 @@ export function FacadeScene({ issues }: Props) {
     if (!element) return;
     const container: HTMLDivElement = element;
 
-    let renderer: THREE.WebGLRenderer | null = null;
+    let renderer: WebGLRenderer | null = null;
     let observer: ResizeObserver | null = null;
     try {
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color("#19140e");
-      const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+      const scene = new Scene();
+      scene.background = new Color("#19140e");
+      const camera = new PerspectiveCamera(38, 1, 0.1, 100);
       camera.position.set(0, 0.2, 8.2);
-      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer = new WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       container.replaceChildren(renderer.domElement);
 
-      const ambient = new THREE.AmbientLight("#d8cdb6", 1.1);
-      const key = new THREE.DirectionalLight("#f2e9d8", 1.3);
+      const ambient = new AmbientLight("#d8cdb6", 1.1);
+      const key = new DirectionalLight("#f2e9d8", 1.3);
       key.position.set(1.5, 2.5, 5);
       scene.add(ambient, key);
 
-      const facade = new THREE.Group();
-      const panelGeometry = new THREE.BoxGeometry(1.55, 1.17, 0.14);
+      const facade = new Group();
+      const panelGeometry = new BoxGeometry(1.55, 1.17, 0.14);
       for (let row = 0; row < 3; row += 1) {
         for (let column = 0; column < 4; column += 1) {
-          const material = new THREE.MeshStandardMaterial({
+          const material = new MeshStandardMaterial({
             color: (row + column) % 2 === 0 ? "#8a7f6c" : "#958a74",
             roughness: 0.82,
-            metalness: 0.08
+            metalness: 0.08,
           });
-          const panel = new THREE.Mesh(panelGeometry, material);
+          const panel = new Mesh(panelGeometry, material);
           panel.position.set(-2.325 + column * 1.55, 1.17 - row * 1.17, 0);
           facade.add(panel);
         }
       }
       scene.add(facade);
 
-      const markerGeometry = new THREE.SphereGeometry(0.14, 28, 20);
+      const markerGeometry = new SphereGeometry(0.14, 28, 20);
       for (const issue of issues) {
         const [normalizedX, normalizedY] = issue.location.normalized_centroid;
-        const marker = new THREE.Mesh(
+        const marker = new Mesh(
           markerGeometry,
-          new THREE.MeshStandardMaterial({
+          new MeshStandardMaterial({
             color: markerColor(issue),
             emissive: markerColor(issue),
             emissiveIntensity: 0.55,
             metalness: 0.15,
-            roughness: 0.35
+            roughness: 0.35,
           })
         );
         marker.position.set(-3.1 + normalizedX * 6.2, 1.75 - normalizedY * 3.5, 0.28);
         scene.add(marker);
-        const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(0.22, 0.025, 10, 30),
-          new THREE.MeshBasicMaterial({ color: markerColor(issue) })
+        const ring = new Mesh(
+          new TorusGeometry(0.22, 0.025, 10, 30),
+          new MeshBasicMaterial({
+            color: markerColor(issue),
+            transparent: true,
+            opacity: 0.65,
+          })
         );
         ring.position.copy(marker.position);
-        ring.position.z -= 0.03;
+        ring.rotation.x = Math.PI / 2.8;
         scene.add(ring);
       }
 
-      function render() {
+      function resize() {
         if (!renderer) return;
-        const width = Math.max(1, container.clientWidth);
-        const height = Math.max(260, container.clientHeight);
-        renderer.setSize(width, height, false);
+        const width = container.clientWidth || 320;
+        const height = container.clientHeight || 240;
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
+        renderer.setSize(width, height, false);
         renderer.render(scene, camera);
       }
-      observer = new ResizeObserver(render);
+
+      observer = new ResizeObserver(() => resize());
       observer.observe(container);
-      render();
-    } catch (error) {
-      // WebGL unavailable (blocked GPU, VM, remote desktop): degrade to a
-      // static panel list instead of crashing the whole dashboard.
-      console.warn("FacadeScene: WebGL unavailable, showing fallback panel map.", error);
+      resize();
+    } catch {
       setWebglAvailable(false);
-      container.replaceChildren();
     }
+
     return () => {
       if (observer) observer.disconnect();
       if (renderer) renderer.dispose();

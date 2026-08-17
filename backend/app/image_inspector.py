@@ -184,6 +184,16 @@ def inspect_image_bytes(
         raise ValueError("Invalid image file format. Supported: JPG, PNG, WebP.")
 
     height, width = image_bgr.shape[:2]
+    max_dim = max(height, width)
+    if max_dim > 1280:
+        scale = 1280.0 / max_dim
+        image_bgr = cv2.resize(
+            image_bgr,
+            (int(width * scale), int(height * scale)),
+            interpolation=cv2.INTER_AREA,
+        )
+        height, width = image_bgr.shape[:2]
+
     checkpoint_path, model_version = _get_model_checkpoint(model_choice)
 
     detector = YoloDetector(

@@ -1,22 +1,61 @@
+from contextlib import asynccontextmanager
 from typing import Annotated
 
+import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .demo import DemoRunner, load_latest_demo
+from .detector import YoloDetector
 from .events import EventLog
-from .image_inspector import inspect_image_bytes
+from .image_inspector import _get_model_checkpoint, inspect_image_bytes
 from .paths import artifacts_root, frontend_dist, repo_root, samples_root
 from .replay import replay_log
+
+
+class CachedStaticFiles(StaticFiles):
+    def __init__(self, *args, cache_control: str = "public, max-age=86400", **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cache_control = cache_control
+
+    def file_response(self, *args, **kwargs) -> Response:
+        resp = super().file_response(*args, **kwargs)
+        resp.headers["Cache-Control"] = self.cache_control
+        return resp
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Pre-warm YOLO model and constrain PyTorch CPU threads for 512 MB Render Free Tier
+    try:
+        import torch
+
+        torch.set_num_threads(1)
+        try:
+            torch.set_num_interop_threads(1)
+        except RuntimeError:
+            pass
+        checkpoint_path, _ = _get_model_checkpoint()
+        detector = YoloDetector(checkpoint_path, confidence=0.15, image_size=320)
+        detector.load()
+        dummy = np.zeros((320, 320, 3), dtype=np.uint8)
+        detector.predict_frame(dummy, frame_id="warmup", timestamp=0.0, image_id="warmup")
+    except Exception:
+        pass
+    yield
+
 
 app = FastAPI(
     title="GlassEye API",
     version="0.1.0",
     description="Deterministic facade inspection and remediation simulator.",
+    lifespan=lifespan,
 )
 
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 # Same-origin production (frontend built into frontend/dist and served by this
 # app) needs no CORS; the dev split (Vite on :5173) is allowed for local work.
 app.add_middleware(
@@ -28,8 +67,16 @@ app.add_middleware(
 )
 artifacts_root().mkdir(parents=True, exist_ok=True)
 samples_root().mkdir(parents=True, exist_ok=True)
-app.mount("/artifacts", StaticFiles(directory=artifacts_root()), name="artifacts")
-app.mount("/samples", StaticFiles(directory=samples_root()), name="samples")
+app.mount(
+    "/artifacts",
+    CachedStaticFiles(directory=artifacts_root(), cache_control="public, max-age=3600"),
+    name="artifacts",
+)
+app.mount(
+    "/samples",
+    CachedStaticFiles(directory=samples_root(), cache_control="public, max-age=86400"),
+    name="samples",
+)
 
 
 @app.api_route("/health", methods=["GET", "HEAD"])
@@ -163,17 +210,26 @@ if frontend_dist().is_dir():
     # for client-side routing.
     app.mount(
         "/assets",
-        StaticFiles(directory=frontend_dist() / "assets"),
+        CachedStaticFiles(
+            directory=frontend_dist() / "assets",
+            cache_control="public, max-age=31536000, immutable",
+        ),
         name="assets",
     )
 
     @app.api_route("/", methods=["GET", "HEAD"], response_model=None)
     def index() -> FileResponse:
-        return FileResponse(frontend_dist() / "index.html")
+        return FileResponse(
+            frontend_dist() / "index.html",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
 
     @app.get("/{path:path}", response_model=None)
     def spa_fallback(path: str) -> FileResponse:
         candidate = frontend_dist() / path
         if candidate.is_file():
             return FileResponse(candidate)
-        return FileResponse(frontend_dist() / "index.html")
+        return FileResponse(
+            frontend_dist() / "index.html",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
