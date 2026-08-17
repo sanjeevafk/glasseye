@@ -1,7 +1,9 @@
-# Local datasets and run outputs (never part of git repository)
+# Local datasets, run outputs, and demo recordings (never part of git repository)
 datasets/
 data/
 artifacts/
+recordings/
+demo_media/
 
 # Checkpoints (6 MB each) ship with the repo so builds and deploys skip retraining
 models/*
