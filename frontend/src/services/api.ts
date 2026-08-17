@@ -4,27 +4,41 @@ export const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://127.0.0.1:
 
 async function jsonResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || "Request failed with " + response.status);
+    if (response.status === 502 || response.status === 503 || response.status === 504) {
+      throw new Error("Render server was waking up from idle state. Please click again.");
+    }
+    const text = await response.text();
+    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+      throw new Error(`Server returned HTTP ${response.status}. Please refresh and retry.`);
+    }
+    try {
+      const parsed = JSON.parse(text);
+      throw new Error(parsed.detail || parsed.message || `Request failed with ${response.status}`);
+    } catch {
+      throw new Error(text || `Request failed with ${response.status}`);
+    }
   }
   return response.json() as Promise<T>;
 }
 
 export async function loadLatestDemo(): Promise<MissionResult | null> {
-  const response = await fetch(backendUrl + "/api/demo/latest");
-  if (response.status === 404) {
+  try {
+    const response = await fetch(backendUrl + "/api/demo/latest");
+    if (response.status === 404) {
+      return null;
+    }
+    return await jsonResponse<MissionResult>(response);
+  } catch {
     return null;
   }
-  return jsonResponse<MissionResult>(response);
 }
 
 export async function runDemo(): Promise<MissionResult> {
-  return jsonResponse<MissionResult>(
-    await fetch(backendUrl + "/api/demo/run", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
-    })
-  );
+  const response = await fetch(backendUrl + "/api/demo/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" }
+  });
+  return jsonResponse<MissionResult>(response);
 }
 
 export async function inspectImage(
