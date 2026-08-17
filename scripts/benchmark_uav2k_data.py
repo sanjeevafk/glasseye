@@ -94,6 +94,11 @@ def main() -> int:
     )
     parser.add_argument("--overlay-count", type=int, default=12)
     parser.add_argument("--max-images", type=int, default=0)
+    parser.add_argument(
+        "--sahi",
+        action="store_true",
+        help="Enable Sliced Aided Hyper Inference (SAHI) with cross-tile NMS merging.",
+    )
     args = parser.parse_args()
     if not args.checkpoint.is_file():
         raise SystemExit(f"YOLO checkpoint is missing: {args.checkpoint}")
@@ -117,7 +122,9 @@ def main() -> int:
         image = cv2.imread(str(image_path))
         if image is None:
             raise ValueError(f"Could not read image: {image_path}")
-        image_predictions = predict_binary(model, image, stem, max_det=MAX_DET)
+        image_predictions = predict_binary(
+            model, image, stem, max_det=MAX_DET, use_sahi=args.sahi
+        )
         predictions.extend(image_predictions)
         predictions_by_image[stem] = image_predictions
         predicted_classes.update(p.class_name for p in image_predictions)
