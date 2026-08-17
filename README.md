@@ -99,6 +99,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000). A `render.yaml` blueprint i
 
 ## Documentation
 
+- [`docs/engineering-story.md`](docs/engineering-story.md): **The Full Engineering Story: From 0% Synthetic Baseline to 61.1% Drone Defect Recall**
 - [`docs/architecture.md`](docs/architecture.md): Core system design and state machines
 - [`docs/sahi-inference.md`](docs/sahi-inference.md): Sliced Aided Hyper Inference (SAHI) and high-res drone benchmark metrics
 - [`docs/data-card.md`](docs/data-card.md): Dataset sources, licensing, and annotation schemas
