@@ -23,7 +23,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "HEAD"],
     allow_headers=["Content-Type"],
 )
 artifacts_root().mkdir(parents=True, exist_ok=True)
@@ -32,7 +32,7 @@ app.mount("/artifacts", StaticFiles(directory=artifacts_root()), name="artifacts
 app.mount("/samples", StaticFiles(directory=samples_root()), name="samples")
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "glasseye"}
 
@@ -167,7 +167,7 @@ if frontend_dist().is_dir():
         name="assets",
     )
 
-    @app.get("/", response_model=None)
+    @app.api_route("/", methods=["GET", "HEAD"], response_model=None)
     def index() -> FileResponse:
         return FileResponse(frontend_dist() / "index.html")
 
