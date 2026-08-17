@@ -7,7 +7,9 @@ it renders the result and append-only event log returned by the backend.
 
 | Component | Responsibility | Contract |
 |---|---|---|
-| detector.py | Load the fine-tuned Ultralytics YOLO checkpoint and produce per-frame detections | DetectorFrame with nullable mask |
+| detector.py | Load the fine-tuned Ultralytics YOLO checkpoint and produce per-frame detections with SAHI support | DetectorFrame with nullable mask |
+| video_inspector.py | Slices drone flight footage at configurable FPS, computes 4×3 panel damage heatmap, timeline scrubber, and summary | VideoInspectionResult |
+| image_inspector.py | Evaluates static high-res facade photos, calculates 0-100 Integrity Index, and triggers advisory VLM second opinions | ImageInspectionResult |
 | perception.py and tracker.py | Read recorded video, apply deterministic IoU tracking, and save evidence crops | VideoInference and EvidenceRecord |
 | localization.py | Place detection centroids on a fixed 4 × 3 facade grid | FacadeLocation |
 | policies.py | Decide CLEAN, ESCALATE, or REVIEW from configuration | PolicyDecision |
@@ -15,7 +17,7 @@ it renders the result and append-only event log returned by the backend.
 | simulator.py | Record a simulated cleaning operation only | SimulatedCleaningResult |
 | verification.py | Compare actual YOLO reinspection output against the original issue location | RESOLVED or UNRESOLVED |
 | events.py and replay.py | Store JSONL events and independently replay the final state | ReplayProjection |
-| frontend | Render panel state, evidence, final outcomes, and event replay | FastAPI JSON API |
+| frontend | Render panel state, evidence, drone video player, damage heatmaps, final outcomes, and 3D event replay | FastAPI JSON API |
 
 The architecture adapts the useful seams observed in Vanrakshak: Pydantic
 contracts, an event-first replay model, a side-effect-free policy engine, and
