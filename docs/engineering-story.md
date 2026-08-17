@@ -80,7 +80,7 @@ graph TD
 - **Result:** True positives on untouched UAV2K aerial captures immediately jumped from **7 to 46** without modifying model weights.
 
 ### Phase 5: Native 640px Resolution & 3-Way Training
-- **Action:** Packaged a unified **2,899-image 640px dataset** (`sanjeevafk/glasseye-bfdd-cubit-uav2k-640`) and fine-tuned YOLOv8n at **640px native resolution** for 50 epochs on a Tesla T4 GPU in Google Colab.
+- **Action:** Packaged a unified **2,899-image 640px dataset** (`sanjeevafk/glasseye-dataset`) and fine-tuned YOLOv8n at **640px native resolution** for 50 epochs on a Tesla T4 GPU in Google Colab.
 - **Outcome:**
   - True Positives on untouched UAV2K test set surged from 60 to **187 (+211%)**.
   - Precision jumped from 11.19% to **35.76% (3.2× higher)**.
