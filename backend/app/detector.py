@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 import numpy as np
 
@@ -23,6 +23,24 @@ class DetectorAdapter(Protocol):
         timestamp: float,
         image_id: str,
     ) -> DetectorFrame: ...
+
+
+_MODEL_CACHE: dict[str, Any] = {}
+
+
+def _get_cached_yolo(model_path: Path) -> Any:
+    key = str(model_path.resolve())
+    if key not in _MODEL_CACHE:
+        try:
+            os.environ.setdefault("YOLO_CONFIG_DIR", str(model_path.parents[2] / ".ultralytics"))
+            matplotlib_config = model_path.parents[2] / ".matplotlib"
+            matplotlib_config.mkdir(parents=True, exist_ok=True)
+            os.environ.setdefault("MPLCONFIGDIR", str(matplotlib_config))
+            from ultralytics import YOLO
+        except ImportError as exc:
+            raise RuntimeError("Ultralytics is required; run make setup.") from exc
+        _MODEL_CACHE[key] = YOLO(key)
+    return _MODEL_CACHE[key]
 
 
 class YoloDetector:
@@ -49,21 +67,6 @@ class YoloDetector:
             return str(json.loads(manifest_path.read_text(encoding="utf-8")).get("model_version", "glasseye-yolo-v1"))
         return "glasseye-yolo-v1"
 
-    def load(self) -> None:
-        if not self.model_path.is_file():
-            raise FileNotFoundError(
-                f"YOLO checkpoint is missing at {self.model_path}. Run make train before inference."
-            )
-        try:
-            os.environ.setdefault("YOLO_CONFIG_DIR", str(self.model_path.parents[2] / ".ultralytics"))
-            matplotlib_config = self.model_path.parents[2] / ".matplotlib"
-            matplotlib_config.mkdir(parents=True, exist_ok=True)
-            os.environ.setdefault("MPLCONFIGDIR", str(matplotlib_config))
-            from ultralytics import YOLO
-        except ImportError as exc:
-            raise RuntimeError("Ultralytics is required; run make setup.") from exc
-        self._model = YOLO(str(self.model_path))
-
     def _selected_device(self) -> str | None:
         if self.device is not None:
             return self.device
@@ -73,6 +76,13 @@ class YoloDetector:
             return "0" if torch.cuda.is_available() else "cpu"
         except ImportError:
             return "cpu"
+
+    def load(self) -> None:
+        if not self.model_path.is_file():
+            raise FileNotFoundError(
+                f"YOLO checkpoint is missing at {self.model_path}. Run make train before inference."
+            )
+        self._model = _get_cached_yolo(self.model_path)
 
     def predict_frame(
         self,
