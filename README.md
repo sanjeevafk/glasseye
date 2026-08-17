@@ -99,6 +99,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000). A `render.yaml` blueprint i
 ## Documentation
 
 - [`docs/architecture.md`](docs/architecture.md): Core system design and state machines
+- [`docs/sahi-inference.md`](docs/sahi-inference.md): Sliced Aided Hyper Inference (SAHI) and high-res drone benchmark metrics
 - [`docs/data-card.md`](docs/data-card.md): Dataset sources, licensing, and annotation schemas
 - [`docs/bfdd-cubit-experiment.md`](docs/bfdd-cubit-experiment.md): Benchmark results across BFDD, CUBIT, and UAV2K
 - [`docs/cubit-data-card.md`](docs/cubit-data-card.md): CUBIT concrete defect dataset card
