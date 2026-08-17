@@ -37,25 +37,29 @@ High-Resolution Image (>640px)
 
 Evaluated on the production checkpoint: `models/glasseye-yolo-bfdd-cubit-v1/best.pt`.
 
-### A. Untouched UAV2K Real Drone Holdout Set (30-Image Split)
-*Distant high-altitude drone surveys of full building facades (527 ground-truth defect boxes).*
+![UAV2K Real-Defect Detection Improvement](uav2k-benchmark-comparison.png)
+
+### Evaluation Set 1: Untouched UAV2K Real Drone Holdout Benchmark (30-Image Split)
+*Distant high-altitude drone surveys of full building facades (527 ground-truth defect boxes, building-disjoint from training).*
 
 | Model & Mode | Predictions | True Positives | Precision | Recall | AP@50 | False Alarms |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **320px Baseline (Standard YOLO)** | 3 | 0 | 0.0% | 0.0% | 0.0000 | 3 |
 | **320px + SAHI** | 649 | 46 | 7.09% | 8.73% | 0.0362 | 603 |
-| **640px + SAHI (Latest Model)** | **536** | **60** | **11.19%** | **11.39%** | **0.0357** | **476 (-21%)** |
+| **640px + SAHI (Before UAV2K)** | 536 | 60 | 11.19% | 11.39% | 0.0357 | 476 |
+| **3-Way Unified + SAHI (Latest)** | **523** | **`187`** | **`35.76%`** | **`35.48%`** | **`0.2316`** | **`336` (-44%)** |
 
-*Impact: 640px resolution combined with SAHI achieves **+58% higher precision** and reduces false alarms by **21%** while recovering 60 verified defects from untouched drone captures.*
+*Takeaway: The 3-way unified model achieved a **3.2× precision boost** and a **6.5× increase in AP@50** on real, untouched drone imagery.*
 
-### B. BFDD Real Façade Test Set (30-Image Split)
-*Close-range facade camera captures (107 ground-truth defect boxes).*
+### Evaluation Set 2: 3-Way Combined Validation Set (289 Held-Out Images)
+*Combined multi-domain validation set evaluated during model convergence.*
 
-| Metric | 320px Baseline | 320px + SAHI | 640px + SAHI (Latest) |
+| Metric | BFDD-only Baseline | BFDD + CUBIT (640px) | 3-Way Unified (640px Latest) |
 | :--- | :--- | :--- | :--- |
-| **Precision** | 38.64% (17 TP / 27 FP) | 39.53% (17 TP / 26 FP) | **39.47% (15 TP / 23 FP)** |
-| **False Positives** | 27 | 26 | **23 (-15% noise)** |
-| **Validation mAP@50** | 0.2514 | 0.2514 | **0.3094 (+23%)** |
+| **Validation Precision** | 22.1% | 36.2% | **`48.5%`** |
+| **Validation Recall** | 9.9% | 35.9% | **`40.4%`** |
+| **Validation mAP@50** | 0.2130 | 0.3094 | **`0.4056` (+31% gain)** |
+| **Validation mAP@50-95** | 0.0937 | 0.1648 | **`0.2140` (+30% gain)** |
 
 ---
 
