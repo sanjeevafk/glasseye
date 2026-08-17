@@ -32,8 +32,6 @@ Across 6 iterative engineering milestones, we transitioned from an initial synth
 
 ## 2. Milestone Progression Overview
 
-![GlassEye Engineering Progression](engineering-story-diagram.png)
-
 The following table traces the empirical benchmark performance across every model milestone evaluated on the **untouched 200-image UAV2K real aerial drone test holdout** (527 ground-truth defect boxes):
 
 | Milestone | Architecture & Training Data | Image Size | True Positives | Real Recall | AP@50 | Key Innovation / Bottleneck |
