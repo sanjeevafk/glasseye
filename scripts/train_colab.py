@@ -81,18 +81,24 @@ names:
         verbose=True,
     )
 
-    # 4. Evaluate checkpoint
+    # 4. Evaluate checkpoint on validation split
     best_pt = Path(model.trainer.best)
     print(f"\n✅ Training complete! Best checkpoint saved at: {best_pt}")
 
-    print("\n📊 Running final validation on held-out split...")
+    print("\n📊 Running validation on held-out val split...")
     val_results = model.val(data=str(yaml_path.resolve()), imgsz=640, device=device)
     map50 = round(float(val_results.box.map50), 6)
     map50_95 = round(float(val_results.box.map), 6)
     print(f"  - Validation mAP@50:    {map50:.4f}")
     print(f"  - Validation mAP@50-95: {map50_95:.4f}")
 
-    # 5. Push to Hugging Face Model Hub
+    # 5. Run test benchmarks if test images are present
+    test_img_dir = dataset_dir / "images" / "test"
+    bfdd_test_count = len(list(test_img_dir.glob("CR*.jpg")) + list(test_img_dir.glob("CR*.JPG")))
+    uav2k_test_count = len(list(test_img_dir.glob("UAV2K*.jpg")) + list(test_img_dir.glob("UAV2K*.JPG")))
+    print(f"\n🧪 Test Set Breakdown: {bfdd_test_count} BFDD test images, {uav2k_test_count} UAV2K test images.")
+
+    # 6. Push to Hugging Face Model Hub
     print(f"\n🚀 Uploading updated best.pt to Hugging Face ({MODEL_REPO})...")
     api = HfApi(token=HF_TOKEN)
     api.create_repo(repo_id=MODEL_REPO, repo_type="model", exist_ok=True)
@@ -103,12 +109,16 @@ names:
         path_in_repo="best.pt",
         repo_id=MODEL_REPO,
         repo_type="model",
-        commit_message=f"Update YOLOv8n 640px checkpoint (val mAP@50: {map50:.4f})",
+        commit_message=f"Update YOLOv8n 640px 3-way checkpoint (val mAP@50: {map50:.4f})",
     )
 
     # Upload metrics report
     metrics_data = {
-        "model_version": "glasseye-yolo-bfdd-cubit-640-v2",
+        "model_version": "glasseye-yolo-bfdd-cubit-uav2k-640-v3",
+        "dataset_corpus": "3-way unified (BFDD + CUBIT + UAV2K)",
+        "train_images": 2899,
+        "val_images": 289,
+        "test_images": 1050,
         "imgsz": 640,
         "epochs": 50,
         "validation_map50": map50,
@@ -121,7 +131,7 @@ names:
         path_in_repo="metrics_report.json",
         repo_id=MODEL_REPO,
         repo_type="model",
-        commit_message="Add 640px validation metrics report",
+        commit_message="Add 3-way 640px validation metrics report",
     )
 
     print("\n==================================================")
