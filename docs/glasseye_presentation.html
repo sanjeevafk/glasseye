@@ -1,0 +1,1265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GlassEye — Autonomous Glass-Façade Inspection &amp; Response</title>
+<meta name="description" content="GlassEye: An autonomous physical-AI building façade inspection and closed-loop response platform. 640px YOLOv8, SAHI high-resolution tiling, deterministic policy engine, 3D digital twin, and append-only replay ledger." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   GLASSEYE · AUTONOMOUS FAÇADE INSPECTION & RESPONSE
+   Theme: "Autonomous Aerial Inspection Command" — deep noir green, emerald, acid lime
+   ============================================================ */
+:root{
+  --paper:#040b08;
+  --paper-2:#071410;
+  --panel:#0a1a14;
+  --panel-2:#0d2119;
+  --panel-3:#10291f;
+  --line:rgba(196,242,123,.13);
+  --line-strong:rgba(196,242,123,.32);
+  --ink:#edf6ec;
+  --muted:#8ea89b;
+  --muted-2:#6c8578;
+  --acid:#c4f27b;
+  --emerald:#3ddc97;
+  --teal:#57c7b8;
+  --amber:#ffbd62;
+  --red:#ff836e;
+  --blue:#8ec9e8;
+  --font-display:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --max:1200px;
+  --radius:18px;
+  --ease:cubic-bezier(.22,.61,.21,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* ---- ambient background ---- */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;
+  background:
+    radial-gradient(900px 600px at 12% -6%, rgba(61,220,151,.12), transparent 60%),
+    radial-gradient(800px 600px at 92% 8%, rgba(196,242,123,.08), transparent 55%),
+    radial-gradient(900px 700px at 50% 110%, rgba(87,199,184,.08), transparent 60%),
+    var(--paper);
+}
+body::after{ /* structural facade grid */
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.5;
+  background-image:
+    linear-gradient(rgba(196,242,123,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(196,242,123,.035) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(120% 90% at 50% 0%, #000 40%, transparent 90%);
+}
+.grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
+::selection{background:var(--acid);color:#07110d}
+a{color:inherit;text-decoration:none}
+img,svg,video{max-width:100%;display:block}
+button{font-family:inherit;cursor:pointer}
+.wrap{width:min(var(--max),calc(100% - 56px));margin:0 auto}
+.mono{font-family:var(--font-mono);letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:var(--muted)}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-mono);letter-spacing:.18em;text-transform:uppercase;font-size:11px;color:var(--acid)}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--acid);box-shadow:0 0 14px var(--acid)}
+
+/* ---------- progress + nav ---------- */
+#progress{position:fixed;top:0;left:0;height:3px;width:0%;z-index:90;
+  background:linear-gradient(90deg,var(--emerald),var(--acid));box-shadow:0 0 14px rgba(196,242,123,.6)}
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:80;
+  backdrop-filter:blur(14px);
+  background:linear-gradient(180deg,rgba(4,11,8,.92),rgba(4,11,8,.6));
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{
+  max-width:var(--max);margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding:14px 24px;
+}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.04em;white-space:nowrap;flex:none}
+.brand .mark{width:26px;height:26px;position:relative;border-radius:50%;border:1px solid var(--acid)}
+.brand .mark::before{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--acid);box-shadow:0 0 12px var(--acid)}
+.brand .mark::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:1px dashed rgba(196,242,123,.5);animation:spin 14s linear infinite}
+.nav-links{display:flex;gap:20px;align-items:center;overflow-x:auto}
+.nav-links a{font-size:12px;letter-spacing:.05em;color:var(--muted);transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--acid)}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;
+  padding:11px 16px;border-radius:9px;border:1px solid var(--acid);
+  background:var(--acid);color:#0a160d;transition:all .25s var(--ease);white-space:nowrap;flex:none;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(196,242,123,.28)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line-strong)}
+.btn.ghost:hover{border-color:var(--acid);color:var(--acid);box-shadow:none}
+.btn.small{padding:8px 12px;font-size:10px}
+
+/* ---------- slide chrome ---------- */
+#slideCount{position:fixed;right:20px;bottom:18px;z-index:85;font-family:var(--font-mono);font-size:11px;color:var(--muted-2);letter-spacing:.18em}
+#slideLabel{position:fixed;left:20px;bottom:18px;z-index:85;font-family:var(--font-mono);font-size:11px;color:var(--muted-2);letter-spacing:.18em;text-transform:uppercase}
+#hint{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:85;font-family:var(--font-mono);font-size:10px;color:var(--muted-2);letter-spacing:.1em;opacity:0;transition:opacity .4s}
+body.scrolled #hint{opacity:.9}
+
+/* ---------- sections ---------- */
+section{position:relative;padding:120px 0;scroll-margin-top:70px}
+section > .wrap{position:relative}
+.sec-head{margin-bottom:52px;max-width:840px}
+.sec-head h2{font-family:var(--font-display);font-size:clamp(32px,5vw,60px);line-height:1.05;letter-spacing:-.04em;margin:16px 0 18px;font-weight:700}
+.sec-head h2 em{font-style:normal;color:var(--acid)}
+.sec-head .lede{color:var(--muted);font-size:16px;max-width:680px;line-height:1.6}
+
+/* ---------- reveal ---------- */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}.d5{transition-delay:.4s}
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
+#hero{min-height:100vh;display:flex;align-items:center;padding:130px 0 80px}
+#hero .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+#hero h1{font-family:var(--font-display);font-size:clamp(40px,6.2vw,84px);line-height:.98;letter-spacing:-.045em;margin:22px 0 22px;font-weight:700}
+#hero h1 .lime{color:var(--acid);position:relative;white-space:nowrap}
+#hero h1 .lime::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:2px;background:linear-gradient(90deg,var(--acid),transparent)}
+.hero-sub{color:var(--muted);font-size:17.5px;max-width:560px;margin-bottom:34px;line-height:1.55}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:36px}
+.hero-meta{display:flex;gap:22px;flex-wrap:wrap;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2)}
+.hero-meta b{color:var(--ink);font-weight:500}
+.scroll-cue{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted-2);font-family:var(--font-mono);font-size:10px;letter-spacing:.2em}
+.scroll-cue .chev{width:14px;height:14px;border-right:1.5px solid var(--muted-2);border-bottom:1.5px solid var(--muted-2);transform:rotate(45deg);animation:drop 1.8s ease-in-out infinite}
+
+/* Radar Scannig Scope */
+.scope{position:relative;aspect-ratio:1/1;max-width:480px;margin:0 auto}
+.scope .ring{position:absolute;border-radius:50%;border:1px solid var(--line-strong)}
+.scope .r1{inset:0;border-color:rgba(196,242,123,.25)}
+.scope .r2{inset:12%}
+.scope .r3{inset:24%;border-style:dashed}
+.scope .r4{inset:36%;opacity:.6}
+.scope .axis{position:absolute;background:rgba(196,242,123,.15)}
+.scope .axis.h{left:0;right:0;top:50%;height:1px}
+.scope .axis.v{top:0;bottom:0;left:50%;width:1px}
+.scope .sweep{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg, rgba(196,242,123,.42), rgba(196,242,123,.06) 55deg, transparent 70deg);
+  animation:sweep 5.5s linear infinite;
+  -webkit-mask:radial-gradient(circle, transparent 36%, #000 37%);
+          mask:radial-gradient(circle, transparent 36%, #000 37%);
+}
+.scope .core{position:absolute;inset:36%;display:grid;place-items:center}
+.scope .core::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(61,220,151,.25),transparent 70%);animation:pulse 3.2s ease-in-out infinite}
+.scope .core svg{width:60%;height:60%;filter:drop-shadow(0 0 18px rgba(196,242,123,.5))}
+.chip{position:absolute;font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--acid);
+  border:1px solid var(--line-strong);background:rgba(10,26,20,.88);padding:7px 11px;border-radius:7px;
+  animation:float 6s ease-in-out infinite;backdrop-filter:blur(6px)}
+.chip.c1{top:2%;left:14%}.chip.c2{top:14%;right:0;animation-delay:-1.4s}
+.chip.c3{bottom:22%;right:2%;animation-delay:-2.6s}.chip.c4{bottom:0;left:30%;animation-delay:-3.8s}
+.chip.c5{top:44%;left:-4%;animation-delay:-5s}
+.scope .stamp{position:absolute;left:-14px;bottom:16%;background:var(--emerald);color:#04140c;padding:12px 14px;font-family:var(--font-mono);font-size:10px;line-height:1.5;transform:rotate(-4deg);box-shadow:6px 6px 0 #040b08;letter-spacing:.1em;font-weight:700}
+.scope .stamp b{display:block;font-size:13px;color:#020a06}
+
+/* Marquee */
+.marquee{position:relative;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:15px 0;overflow:hidden;margin-top:60px}
+.marquee .track{display:flex;gap:54px;width:max-content;animation:marquee 32s linear infinite}
+.marquee span{font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.marquee span b{color:var(--acid);font-weight:600}
+
+/* ============================================================
+   01 · THE PROBLEM
+   ============================================================ */
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.problem-card{border:1px solid var(--line);background:linear-gradient(160deg,var(--panel),var(--paper-2));border-radius:var(--radius);padding:28px 24px;transition:all .3s var(--ease);position:relative;overflow:hidden}
+.problem-card::after{content:"";position:absolute;inset:0;background:radial-gradient(320px 160px at 50% -20%,rgba(196,242,123,.08),transparent);opacity:0;transition:opacity .3s}
+.problem-card:hover{transform:translateY(-5px);border-color:var(--line-strong)}
+.problem-card:hover::after{opacity:1}
+.problem-card .num{font-family:var(--font-mono);font-size:11px;color:var(--emerald);letter-spacing:.14em;font-weight:700}
+.problem-card h3{font-family:var(--font-display);font-size:20px;margin:14px 0 10px}
+.problem-card p{color:var(--muted);font-size:13.5px;line-height:1.5}
+.pain-stat{margin-top:52px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.pain-stat div{border-left:2px solid var(--line-strong);padding-left:20px}
+.pain-stat b{display:block;font-family:var(--font-display);font-size:clamp(26px,3vw,40px);color:var(--acid)}
+.pain-stat span{font-size:13px;color:var(--muted)}
+
+/* ============================================================
+   02 · THE SOLUTION & CLOSED LOOP
+   ============================================================ */
+#solution .big{font-family:var(--font-display);font-size:clamp(28px,4vw,50px);line-height:1.15;letter-spacing:-.03em;max-width:980px;margin-bottom:26px}
+#solution .big .lime{color:var(--acid)}
+.vision-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:50px}
+.v-pillar{border:1px solid var(--line);border-radius:var(--radius);padding:24px 18px;background:linear-gradient(165deg,var(--panel-2),var(--paper-2));transition:all .3s var(--ease)}
+.v-pillar:hover{transform:translateY(-4px);border-color:var(--acid)}
+.v-pillar .step{font-family:var(--font-mono);font-size:10.5px;color:var(--emerald);font-weight:700}
+.v-pillar h4{font-family:var(--font-display);font-size:16.5px;margin:12px 0 8px}
+.v-pillar p{font-size:12.5px;color:var(--muted);line-height:1.45}
+.v-pillar .ico{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line-strong);border-radius:10px;margin-bottom:14px;background:var(--panel-3)}
+.v-pillar .ico svg{width:20px;height:20px;stroke:var(--acid);fill:none;stroke-width:1.6}
+.vision-strip{display:flex;gap:12px;flex-wrap:wrap;margin-top:36px}
+.tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);color:var(--muted);padding:10px 14px;border-radius:8px;background:rgba(10,26,20,.6)}
+.tag b{color:var(--ink);font-weight:500}
+.tag.hot{border-color:rgba(196,242,123,.4);color:var(--acid)}
+.tag.hot b{color:var(--acid)}
+
+/* ============================================================
+   03 · LIVE VIDEO DEMO SHOWCASE
+   ============================================================ */
+#video-demo{background:linear-gradient(180deg,transparent,rgba(10,26,20,.65) 25%,rgba(10,26,20,.65) 75%,transparent);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.video-cinema-layout{display:grid;grid-template-columns:1fr 340px;gap:24px;margin-top:32px;align-items:stretch}
+.video-player-container{border:1px solid var(--line-strong);border-radius:var(--radius);background:#000000;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7);display:flex;flex-direction:column}
+.video-screen-wrapper{position:relative;width:100%;aspect-ratio:16/10;background:#050d09;display:flex;align-items:center;justify-content:center}
+.native-pitch-video{width:100%;height:100%;object-fit:contain}
+.video-top-hud{position:absolute;top:12px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;z-index:10}
+.hud-pill{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:6px;background:rgba(4,11,8,.85);border:1px solid var(--line);color:var(--ink);backdrop-filter:blur(8px)}
+.hud-pill.rec{color:var(--red);border-color:rgba(255,131,110,.4)}
+.hud-pill.live-tag{color:var(--acid);background:rgba(10,26,20,.9);border-color:var(--acid)}
+.video-narration-box{position:absolute;bottom:14px;left:14px;right:14px;background:rgba(7,20,16,.92);border:1px solid var(--line-strong);border-radius:10px;padding:12px 18px;backdrop-filter:blur(12px);z-index:10;box-shadow:0 8px 30px rgba(0,0,0,.7)}
+.narration-badge{font-family:var(--font-mono);font-size:10.5px;color:var(--acid);font-weight:700;letter-spacing:.12em}
+.narration-text{font-size:13.5px;color:var(--ink);margin-top:2px;line-height:1.4}
+.video-control-bar{background:var(--panel-2);border-top:1px solid var(--line);padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.custom-scrubber-bar{position:relative;height:8px;background:var(--paper);border-radius:4px;border:1px solid var(--line);cursor:pointer}
+.custom-scrubber-fill{height:100%;background:linear-gradient(90deg,var(--emerald),var(--acid));border-radius:4px;width:0%;position:relative}
+.chapter-pip{position:absolute;top:-4px;width:3px;height:14px;background:rgba(255,255,255,.4);border-radius:1px;transform:translateX(-50%)}
+.chapter-pip.passed{background:var(--acid)}
+.ctrl-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.ctrl-btns{display:flex;align-items:center;gap:8px}
+.ctrl-btn{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--ink);background:rgba(196,242,123,.08);border:1px solid var(--line);padding:6px 12px;border-radius:6px;transition:all .2s}
+.ctrl-btn:hover{background:var(--acid);color:#0a160d}
+.ctrl-time{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.speed-buttons{display:flex;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:2px}
+.speed-btn{font-family:var(--font-mono);font-size:10px;padding:3px 6px;border:none;background:transparent;color:var(--muted);border-radius:4px}
+.speed-btn.active{background:var(--acid);color:#07110d;font-weight:700}
+
+/* Chapters Sidebar */
+.video-chapters-sidebar{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:22px;display:flex;flex-direction:column;gap:14px}
+.video-chapters-sidebar h3{font-family:var(--font-display);font-size:18px;letter-spacing:-.02em}
+.chapters-list{display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:480px;padding-right:4px}
+.chapter-item{border:1px solid var(--line);border-radius:10px;background:var(--panel-2);padding:10px 14px;cursor:pointer;transition:all .2s var(--ease)}
+.chapter-item:hover{border-color:var(--acid);background:var(--panel-3)}
+.chapter-item.active{border-color:var(--acid);background:rgba(196,242,123,.12);box-shadow:0 0 16px rgba(196,242,123,.18)}
+.chap-top{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px}
+.chap-time{color:var(--acid);font-weight:700}
+.chap-tag{color:var(--muted-2)}
+.chap-name{font-family:var(--font-display);font-size:13.5px;font-weight:600;margin:4px 0 2px;color:var(--ink)}
+.chap-desc{font-size:11.5px;color:var(--muted);line-height:1.35}
+
+/* ============================================================
+   04 · METRICS
+   ============================================================ */
+#metrics{background:linear-gradient(180deg,transparent,rgba(10,26,20,.55) 30%,rgba(10,26,20,.55) 70%,transparent);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.metric-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;margin-bottom:52px}
+.metric-head h2{font-family:var(--font-display);font-size:clamp(32px,4.6vw,56px);letter-spacing:-.04em}
+.metric-head p{color:var(--muted);max-width:480px;font-size:15px}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.metric{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:26px 20px;overflow:hidden}
+.metric::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--emerald),transparent)}
+.metric b{display:block;font-family:var(--font-display);font-size:clamp(30px,3.4vw,46px);line-height:1;letter-spacing:-.03em;color:var(--acid)}
+.metric b .sup{font-size:.45em;color:var(--muted-2);font-weight:400}
+.metric span{display:block;margin-top:12px;font-size:12px;color:var(--muted);line-height:1.45}
+.metric.danger::before{background:linear-gradient(90deg,var(--emerald),transparent)}
+.metric.danger b{color:var(--emerald)}
+.metric.amber::before{background:linear-gradient(90deg,var(--teal),transparent)}
+.metric.amber b{color:var(--teal)}
+.metric .tag{position:absolute;top:14px;right:14px;font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+
+/* ============================================================
+   05 · ARCHITECTURE
+   ============================================================ */
+.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;position:relative}
+.stage{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(170deg,var(--panel-2),var(--paper-2));padding:24px 18px;min-height:215px;transition:all .3s var(--ease)}
+.stage:hover{border-color:var(--acid);transform:translateY(-4px)}
+.stage .n{font-family:var(--font-mono);font-size:10.5px;color:var(--emerald);letter-spacing:.12em}
+.stage h4{font-family:var(--font-display);font-size:19px;margin:14px 0 8px}
+.stage p{font-size:12.5px;color:var(--muted);line-height:1.4}
+.stage .flowtag{display:inline-block;margin-top:14px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;color:var(--acid);border:1px solid var(--line);padding:4px 7px;border-radius:5px}
+.stage .pulse{position:absolute;top:16px;right:16px;width:8px;height:8px;border-radius:50%;background:var(--acid);box-shadow:0 0 0 0 rgba(196,242,123,.5);animation:ring 2.4s infinite}
+.stage:nth-child(2) .pulse{background:var(--emerald);animation-delay:.3s}
+.stage:nth-child(3) .pulse{background:var(--teal);animation-delay:.6s}
+.stage:nth-child(4) .pulse{background:var(--amber);animation-delay:.9s}
+.stage:nth-child(5) .pulse{background:var(--red);animation-delay:1.2s}
+.arch-flow{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:18px}
+.arch-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:28px}
+.arch-card h3{font-family:var(--font-display);font-size:21px;margin-bottom:10px}
+.arch-card p{color:var(--muted);font-size:14px}
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:12px;overflow:hidden;margin-top:20px}
+.dual > div{background:var(--panel);padding:20px}
+.dual .label{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--muted-2);text-transform:uppercase}
+.dual h4{font-family:var(--font-display);font-size:16px;margin:8px 0}
+.dual ul{list-style:none;margin-top:8px}
+.dual li{font-size:12.5px;color:var(--muted);padding:4px 0 4px 18px;position:relative}
+.dual li::before{content:"▸";position:absolute;left:0;color:var(--acid)}
+.events-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.evt{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;border:1px solid var(--line);background:var(--paper-2);padding:7px 10px;border-radius:6px;color:var(--muted)}
+.evt b{color:var(--acid);font-weight:500}
+
+/* ============================================================
+   06 · ENGINEERING PROGRESSION & SAHI
+   ============================================================ */
+.inno-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.inno{border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(165deg,var(--panel),var(--paper-2));padding:30px 26px;transition:all .35s var(--ease);position:relative;overflow:hidden}
+.inno::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--emerald),var(--acid));opacity:0;transition:opacity .3s}
+.inno:hover{transform:translateY(-5px);border-color:var(--line-strong)}
+.inno:hover::before{opacity:1}
+.inno .ico{width:42px;height:42px;border:1px solid var(--line-strong);border-radius:11px;display:grid;place-items:center;margin-bottom:18px;background:var(--panel-3)}
+.inno .ico svg{width:21px;height:21px;stroke:var(--acid);fill:none;stroke-width:1.6}
+.inno h4{font-family:var(--font-display);font-size:19px;margin-bottom:9px}
+.inno p{font-size:13.5px;color:var(--muted)}
+.inno .proof{margin-top:14px;font-family:var(--font-mono);font-size:10.5px;color:var(--acid);letter-spacing:.05em;font-weight:700}
+
+/* Milestone Progression Matrix */
+.milestones-deck-wrapper{margin-top:40px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--panel);padding:30px}
+.milestones-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+.milestones-header h3{font-family:var(--font-display);font-size:22px}
+.milestone-stepper-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:24px}
+.m-step-card{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px 12px;cursor:pointer;transition:all .2s var(--ease);display:flex;flex-direction:column;gap:4px}
+.m-step-card:hover{border-color:var(--acid);background:var(--panel-3)}
+.m-step-card.active{border-color:var(--acid);background:rgba(196,242,123,.12);box-shadow:0 0 16px rgba(196,242,123,.2)}
+.m-step-id{font-family:var(--font-mono);font-size:10px;color:var(--emerald);font-weight:700}
+.m-step-name{font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-step-recall{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--acid)}
+.m-step-detail-card{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:12px}
+.m-detail-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--line);padding-bottom:12px}
+.m-stats-pills{display:flex;gap:10px}
+.m-pill{font-family:var(--font-mono);font-size:11px;background:rgba(196,242,123,.08);border:1px solid var(--line);padding:6px 12px;border-radius:6px;color:var(--ink)}
+.m-pill b{color:var(--acid)}
+
+/* ============================================================
+   07 · FAÇADE INTEGRITY CALCULATOR
+   ============================================================ */
+.calc-wrap{display:grid;grid-template-columns:.95fr 1.05fr;gap:34px;align-items:stretch}
+.calc-panel{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:32px}
+.calc-panel h3{font-family:var(--font-display);font-size:20px;margin-bottom:26px}
+.slider-row{margin-bottom:22px}
+.slider-row .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.slider-row label{font-size:13px;color:var(--muted)}
+.slider-row .val{font-family:var(--font-mono);font-size:14px;color:var(--acid)}
+.slider-row .weight{font-family:var(--font-mono);font-size:10px;color:var(--muted-2);margin-left:8px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:4px;background:linear-gradient(90deg,var(--emerald),var(--acid));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--paper);border:2px solid var(--acid);box-shadow:0 0 12px rgba(196,242,123,.5);cursor:pointer;transition:transform .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--paper);border:2px solid var(--acid);cursor:pointer}
+.score-panel{border:1px solid var(--line-strong);border-radius:var(--radius);background:linear-gradient(160deg,var(--panel-2),var(--paper-2));padding:32px;display:flex;flex-direction:column;justify-content:center}
+.score-big{font-family:var(--font-display);font-size:clamp(64px,9vw,110px);line-height:1;letter-spacing:-.05em;color:var(--acid)}
+.score-big .unit{font-size:.3em;color:var(--muted-2)}
+.score-track{position:relative;height:14px;border-radius:8px;background:var(--paper);border:1px solid var(--line);margin:30px 0 12px;overflow:visible}
+.score-fill{position:absolute;top:0;left:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,var(--emerald),var(--acid));width:0%;transition:width .35s var(--ease)}
+.score-mark{position:absolute;top:-7px;bottom:-7px;width:2px;background:var(--teal);z-index:2}
+.score-mark span{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:9.5px;color:var(--teal);letter-spacing:.08em;white-space:nowrap}
+.score-mark.m85{background:var(--red)}
+.score-mark.m85 span{color:var(--red)}
+.score-state{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--emerald);min-height:22px}
+.score-bars{margin-top:26px;display:flex;flex-direction:column;gap:10px}
+.sbar{display:flex;align-items:center;gap:12px}
+.sbar .nm{width:110px;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;color:var(--muted-2);text-transform:uppercase;flex:none}
+.sbar .bar{flex:1;height:7px;border-radius:4px;background:var(--paper);overflow:hidden}
+.sbar .fill{height:100%;border-radius:4px;transition:width .3s var(--ease)}
+.sbar .pt{width:44px;text-align:right;font-family:var(--font-mono);font-size:11px;color:var(--ink)}
+
+/* ============================================================
+   08 · ROADMAP
+   ============================================================ */
+.timeline{position:relative;margin-top:70px}
+.timeline::before{content:"";position:absolute;left:0;right:0;top:9px;height:2px;background:linear-gradient(90deg,var(--emerald),var(--acid),var(--teal),var(--blue));opacity:.5}
+.tl-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+.tl{position:relative;padding-top:34px}
+.tl .dot{position:absolute;top:0;left:0;width:20px;height:20px;border-radius:50%;border:2px solid var(--acid);background:var(--paper);box-shadow:0 0 0 6px var(--panel)}
+.tl:nth-child(2) .dot{border-color:var(--emerald)}.tl:nth-child(3) .dot{border-color:var(--teal)}
+.tl:nth-child(4) .dot{border-color:var(--acid)}.tl:nth-child(5) .dot{border-color:var(--blue)}.tl:nth-child(6) .dot{border-color:var(--emerald)}
+.tl .when{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;color:var(--muted-2);text-transform:uppercase}
+.tl h4{font-family:var(--font-display);font-size:17px;margin:8px 0 8px}
+.tl p{font-size:12.5px;color:var(--muted)}
+.tl .now{display:inline-block;margin-top:10px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.12em;color:var(--emerald);border:1px solid rgba(61,220,151,.4);padding:4px 8px;border-radius:6px;text-transform:uppercase}
+.phase-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}
+.phase{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:26px}
+.phase .ph{font-family:var(--font-mono);font-size:11px;color:var(--emerald);letter-spacing:.14em;font-weight:700}
+.phase h4{font-family:var(--font-display);font-size:18px;margin:10px 0 8px}
+.phase ul{list-style:none}
+.phase li{font-size:13px;color:var(--muted);padding:5px 0 5px 18px;position:relative}
+.phase li::before{content:"▸";position:absolute;left:0;color:var(--acid)}
+
+/* ============================================================
+   09 · COMPETITIVE & VALUE PROPOSITION
+   ============================================================ */
+.comp{margin-top:40px;border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden}
+.comp table{width:100%;border-collapse:collapse;font-size:13px}
+.comp th{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);padding:16px 14px;text-align:left;border-bottom:1px solid var(--line);background:var(--panel)}
+.comp th.ours{color:var(--acid)}
+.comp td{padding:14px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted)}
+.comp td.ours{color:var(--ink);font-weight:500;background:rgba(196,242,123,.05)}
+.comp tr:last-child td{border-bottom:none}
+.comp .chk{color:var(--emerald)}.comp .x{color:var(--muted-2)}.comp .part{color:var(--teal)}
+
+/* ============================================================
+   10 · CLOSING & TEAM
+   ============================================================ */
+#closing{min-height:92vh;display:flex;align-items:center;text-align:center;padding:120px 0}
+#closing .big{font-family:var(--font-display);font-size:clamp(38px,6.5vw,90px);letter-spacing:-.05em;line-height:1.02;margin:24px 0 22px}
+#closing .big .lime{color:var(--acid)}
+#closing .lede{color:var(--muted);font-size:18px;max-width:640px;margin:0 auto 38px}
+#closing .actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.team{margin-top:54px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.team .member{border:1px solid var(--line);border-radius:14px;padding:16px 22px;background:var(--panel);min-width:180px;text-align:left}
+.team .member b{font-family:var(--font-display);font-size:15px;display:block;color:var(--ink)}
+.team .member span{font-size:12px;color:var(--acid);font-family:var(--font-mono);font-weight:600}
+.team .member p{font-size:11.5px;color:var(--muted);margin-top:4px}
+footer{border-top:1px solid var(--line);padding:30px 0 46px;color:var(--muted-2);font-size:12px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer .mono{font-size:10px}
+
+/* ---------- notes drawer ---------- */
+#notesBtn{position:fixed;right:20px;top:78px;z-index:85;width:38px;height:38px;border-radius:10px;border:1px solid var(--line-strong);background:rgba(10,26,20,.85);color:var(--acid);font-size:15px;display:grid;place-items:center;backdrop-filter:blur(8px);transition:all .25s}
+#notesBtn:hover{border-color:var(--acid);transform:translateY(-2px)}
+#notesBtn.active{background:var(--acid);color:#0a160d}
+#notesDrawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,92vw);z-index:95;background:var(--paper-2);border-left:1px solid var(--line-strong);transform:translateX(105%);transition:transform .45s var(--ease);overflow-y:auto;padding:26px;box-shadow:-30px 0 60px rgba(0,0,0,.6)}
+#notesDrawer.open{transform:none}
+#notesDrawer h4{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;color:var(--acid);text-transform:uppercase;margin-bottom:20px}
+#notesDrawer h5{font-family:var(--font-display);font-size:16px;margin:18px 0 6px}
+#notesDrawer p{font-size:13px;color:var(--muted);margin-bottom:14px}
+#notesClose{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:18px}
+
+/* ---------- animations ---------- */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes sweep{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.5;transform:scale(.92)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes drop{0%,100%{opacity:.2;transform:rotate(45deg) translate(0,0)}50%{opacity:1;transform:rotate(45deg) translate(5px,5px)}}
+@keyframes marquee{to{transform:translateX(-50%)}}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(196,242,123,.45)}70%{box-shadow:0 0 0 9px rgba(196,242,123,0)}100%{box-shadow:0 0 0 0 rgba(196,242,123,0)}}
+
+/* ---------- responsive ---------- */
+@media (max-width:1100px){
+  #hero .grid{grid-template-columns:1fr;gap:50px}
+  .scope{max-width:400px}
+  .metric-grid{grid-template-columns:repeat(2,1fr)}
+  .pipeline{grid-template-columns:repeat(3,1fr)}
+  .tl-grid{grid-template-columns:repeat(3,1fr);gap:26px 14px}
+  .timeline::before{display:none}
+  .vision-grid{grid-template-columns:repeat(3,1fr)}
+  .inno-grid{grid-template-columns:repeat(2,1fr)}
+  .video-cinema-layout{grid-template-columns:1fr}
+  .calc-wrap{grid-template-columns:1fr}
+  .arch-flow{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .nav-links{display:none}
+  section{padding:100px 0}
+  .problem-grid,.metric-grid,.pipeline,.vision-grid,.inno-grid,.phase-grid,.pain-stat{grid-template-columns:1fr}
+  .tl-grid{grid-template-columns:1fr 1fr}
+  .dual{grid-template-columns:1fr}
+  .comp{overflow-x:auto}
+  .comp table{min-width:660px}
+  #slideCount,#slideLabel{display:none}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div id="progress"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#hero" class="brand"><span class="mark"></span>GLASSEYE · FAÇADE AI</a>
+    <div class="nav-links">
+      <a href="#problem">Problem</a>
+      <a href="#solution">Solution</a>
+      <a href="#video-demo">Demo Video</a>
+      <a href="#metrics">Metrics</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#narrative">Progression</a>
+      <a href="#calculator">Policy</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+    <a href="http://127.0.0.1:5173" target="_blank" rel="noopener" class="btn small">Launch 3D Twin ↗</a>
+  </div>
+</nav>
+
+<button id="notesBtn" aria-label="Toggle speaker notes" aria-expanded="false" aria-controls="notesDrawer" title="Speaker notes (S)">📋</button>
+<aside id="notesDrawer" aria-label="Speaker notes">
+  <button id="notesClose" aria-label="Close notes">✕</button>
+  <h4>Speaker notes · 10:00 Hackathon Presentation + Q&amp;A</h4>
+  <div id="notesBody"></div>
+</aside>
+
+<div id="slideLabel">GlassEye</div>
+<div id="slideCount">— / 10</div>
+<div id="hint">← → slides · S notes · ↓ scroll</div>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section id="hero">
+  <div class="wrap">
+    <div class="grid">
+      <div>
+        <span class="eyebrow reveal">National Hackathon · Autonomous Systems for Urban Infrastructure</span>
+        <h1 class="reveal d1">See the defect. Decide the response. <span class="lime">Verify the fix.</span></h1>
+        <p class="hero-sub reveal d2">GlassEye is an autonomous physical-AI building façade inspection and closed-loop response platform — 640px YOLOv8 defect detection, deterministic policy routing, simulated actuation, and persistent 3D digital twin.</p>
+        <div class="hero-actions reveal d3">
+          <a href="#video-demo" class="btn">Watch Pitch Demo (101s) ▶</a>
+          <a href="http://127.0.0.1:5173" target="_blank" rel="noopener" class="btn ghost">Launch Live 3D Twin</a>
+        </div>
+        <div class="hero-meta reveal d4">
+          <span>Perception <b>640px Native YOLOv8</b></span>
+          <span>Inference <b>SAHI Tiling</b></span>
+          <span>Recall <b>61.10% Drone Holdout</b></span>
+          <span>Ledger <b>28-Event Replay</b></span>
+        </div>
+      </div>
+      <div class="reveal d2">
+        <div class="scope">
+          <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="ring r4"></div>
+          <div class="axis h"></div><div class="axis v"></div>
+          <div class="sweep"></div>
+          <div class="core">
+            <svg viewBox="0 0 120 120" fill="none" stroke="#c4f27b" stroke-width="2" stroke-linecap="round">
+              <!-- Façade Panel Grid & Drone Scanner Core -->
+              <rect x="30" y="25" width="60" height="70" rx="4" stroke="#3ddc97" stroke-width="1.8" fill="rgba(61,220,151,0.06)"/>
+              <line x1="50" y1="25" x2="50" y2="95" stroke="rgba(196,242,123,0.3)" stroke-dasharray="2 2"/>
+              <line x1="70" y1="25" x2="70" y2="95" stroke="rgba(196,242,123,0.3)" stroke-dasharray="2 2"/>
+              <line x1="30" y1="48" x2="90" y2="48" stroke="rgba(196,242,123,0.3)" stroke-dasharray="2 2"/>
+              <line x1="30" y1="72" x2="90" y2="72" stroke="rgba(196,242,123,0.3)" stroke-dasharray="2 2"/>
+              <!-- Laser Scanner Box -->
+              <rect x="52" y="50" width="16" height="20" rx="2" stroke="#c4f27b" fill="rgba(196,242,123,0.25)"/>
+              <!-- Crosshair Drone Scanner -->
+              <circle cx="60" cy="60" r="6" stroke="#c4f27b" stroke-width="1.5" fill="none"/>
+              <path d="M60 45v6M60 69v6M45 60h6M69 60h6" stroke="#c4f27b" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <span class="chip c1">YOLO · 640px</span>
+          <span class="chip c2">SAHI · TILING</span>
+          <span class="chip c3">VLM · REVIEW</span>
+          <span class="chip c4">POLICY · DECIDE</span>
+          <span class="chip c5">VERIFY · CLOSED-LOOP</span>
+          <div class="stamp"><b>GREENLIT</b>ROUND 1 SUBMISSION · LIVE DEMO</div>
+        </div>
+      </div>
+    </div>
+    <div class="marquee">
+      <div class="track">
+        <span>Autonomous Façade Inspection <b>·</b></span><span>640px Native Resolution <b>·</b></span><span>SAHI High-Res Tiling <b>·</b></span><span>Closed-Loop Verification <b>·</b></span><span>28-Event Replayable Ledger <b>·</b></span><span>Three.js 3D Digital Twin <b>·</b></span><span>Deterministic Policy Engine <b>·</b></span><span>Model-Agnostic Core <b>·</b></span>
+        <span>Autonomous Façade Inspection <b>·</b></span><span>640px Native Resolution <b>·</b></span><span>SAHI High-Res Tiling <b>·</b></span><span>Closed-Loop Verification <b>·</b></span><span>28-Event Replayable Ledger <b>·</b></span><span>Three.js 3D Digital Twin <b>·</b></span><span>Deterministic Policy Engine <b>·</b></span><span>Model-Agnostic Core <b>·</b></span>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue">SCROLL<div class="chev"></div></div>
+</section>
+
+<!-- ================= 01 PROBLEM ================= -->
+<section id="problem">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">01 · The problem</span>
+      <h2>Glass towers hide their damage <em>in plain sight.</em></h2>
+      <p class="lede">Façade inspection across modern high-rises is fundamentally manual, dangerous, and infrequent. Rope-access teams or one-off drone flights inspect only 1–2× per year — between visits, seal degradation, water ingress, and structural cracks go unnoticed until repair costs multiply.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card reveal"><span class="num">01</span><h3>Infrequent Cadence</h3><p>Checked 1–2× per year; defects wait months before detection while damage multiplies under structural load.</p></div>
+      <div class="problem-card reveal d1"><span class="num">02</span><h3>High-Risk Rope Access</h3><p>Human technicians hanging from ropes 50+ stories high face extreme life-safety hazards for routine checks.</p></div>
+      <div class="problem-card reveal d2"><span class="num">03</span><h3>Sub-Pixel Crack Loss</h3><p>Standard downscaled vision models crush thin 2–4px hairline cracks into blur before the first convolution.</p></div>
+      <div class="problem-card reveal"><span class="num">04</span><h3>Zero Building Memory</h3><p>Legacy inspections rarely compare against the building's history — each visit restarts from zero context.</p></div>
+      <div class="problem-card reveal d1"><span class="num">05</span><h3>No Immutable Audit Log</h3><p>Subjective paper checklists lack verifiable cryptographic timestamps required for insurance &amp; warranty claims.</p></div>
+      <div class="problem-card reveal d2"><span class="num">06</span><h3>Escalating Repair Costs</h3><p>Uncleaned sealant stains and minor surface grime turn into catastrophic multi-lakh panel replacement failures.</p></div>
+    </div>
+    <div class="pain-stat reveal">
+      <div><b>₹1,000s Cr</b><span>in glass-façade high-rises across India needing recurring inspection</span></div>
+      <div><b>1–2× / yr</b><span>typical manual inspection cadence — defects wait months to surface</span></div>
+      <div><b>Zero</b><span>historical memory between visits in legacy manual inspections</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 SOLUTION ================= -->
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">02 · The solution</span>
+      <h2>A closed inspection loop, <em>not a one-time scan.</em></h2>
+    </div>
+    <p class="big reveal d1">GlassEye turns façade video into a <span class="lime">living decision loop</span>: detect the anomaly, understand what it is, decide whether it's safe to act on, act, and re-check the result — all mapped onto a persistent digital twin.</p>
+    <div class="vision-grid">
+      <div class="v-pillar reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg></div><span class="step">01 · SEE</span><h4>Candidate Extraction</h4><p>640px YOLOv8 proposes defect candidate regions from drone survey video feeds.</p></div>
+      <div class="v-pillar reveal d1"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="8"/></svg></div><span class="step">02 · UNDERSTAND</span><h4>Semantic Labeling</h4><p>Classifies surface grime, sealant damage, or structural fracture with severity scoring.</p></div>
+      <div class="v-pillar reveal d2"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z"/></svg></div><span class="step">03 · DECIDE</span><h4>Deterministic Policy</h4><p>Rule engine routes surface issues to cleaning and structural cracks to human engineering review.</p></div>
+      <div class="v-pillar reveal d3"><div class="ico"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><span class="step">04 · ACT</span><h4>Simulated Actuation</h4><p>Dispatches honest simulated actuator commands (SIMULATED_COMPLETE) with human modal confirmation.</p></div>
+      <div class="v-pillar reveal d4"><div class="ico"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div><span class="step">05 · VERIFY</span><h4>Closed Reinspection</h4><p>Post-remediation flight re-checks panel coordinate to confirm RESOLVED or maintain ESCALATED.</p></div>
+    </div>
+    <div class="vision-strip reveal">
+      <span class="tag">Vision Model <b>YOLOv8 640px Native</b></span>
+      <span class="tag">Holdout Test Set <b>200 UAV2K Aerial Holdouts (527 Defects)</b></span>
+      <span class="tag">Recall <b>61.10% (322 / 527 TP)</b></span>
+      <span class="tag hot">Artifact <b>sanjeevafk/glasseye-yolo</b></span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 LIVE DEMO VIDEO SHOWCASE ================= -->
+<section id="video-demo">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">03 · Live demo video showcase</span>
+      <h2>Uncut 101s system walkthrough: <em>Vision, Policy &amp; 3D Twin.</em></h2>
+      <p class="lede">Recorded flight demonstration running live YOLOv8 inference, advisory VLM reviews, simulated actuator dispatch, and the 28-event immutable ledger replay.</p>
+    </div>
+
+    <div class="video-cinema-layout reveal">
+      <!-- Main Video Screen -->
+      <div class="video-player-container">
+        <div class="video-screen-wrapper">
+          <video
+            id="pitchVideo"
+            class="native-pitch-video"
+            playsinline
+            preload="metadata"
+          >
+            <source src="../frontend/public/videos/glasseye-hackathon-pitch.mp4" type="video/mp4" />
+            <source src="../demo/glasseye-hackathon-pitch.mp4" type="video/mp4" />
+            <source src="/videos/glasseye-hackathon-pitch.mp4" type="video/mp4" />
+            Your browser does not support video playback.
+          </video>
+          <div class="video-top-hud">
+            <span class="hud-pill rec">● FLIGHT RECORDER (1440×900)</span>
+            <span class="hud-pill live-tag" id="hudChapterBadge">MISSION OVERVIEW</span>
+          </div>
+          <div class="video-narration-box">
+            <div class="narration-badge" id="narrationTimestamp">00:00 · SYSTEM OVERVIEW</div>
+            <div class="narration-text" id="narrationDesc">Introduction to GlassEye autonomous façade inspection and live 3D digital twin dashboard.</div>
+          </div>
+        </div>
+        <div class="video-control-bar">
+          <div class="custom-scrubber-bar" id="scrubberBar">
+            <div class="custom-scrubber-fill" id="scrubberFill"></div>
+          </div>
+          <div class="ctrl-row">
+            <div class="ctrl-btns">
+              <button class="ctrl-btn" id="playBtn" type="button">▶ PLAY</button>
+              <button class="ctrl-btn" id="rewindBtn" type="button">↺ -5s</button>
+              <button class="ctrl-btn" id="forwardBtn" type="button">+5s ↻</button>
+              <span class="ctrl-time" id="timeDisplay">00:00 / 01:41</span>
+            </div>
+            <div class="speed-buttons">
+              <button class="speed-btn" data-spd="0.75">0.75x</button>
+              <button class="speed-btn active" data-spd="1">1x</button>
+              <button class="speed-btn" data-spd="1.25">1.25x</button>
+              <button class="speed-btn" data-spd="1.5">1.5x</button>
+              <button class="speed-btn" data-spd="2">2x</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapters Sidebar -->
+      <div class="video-chapters-sidebar">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Mission Chapters</h3>
+          <span class="mono">9 Events</span>
+        </div>
+        <div class="chapters-list" id="chaptersList"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 METRICS ================= -->
+<section id="metrics">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>Proof, not slides.</h2>
+      <p>Four empirical measurements evaluated across strictly building-disjoint aerial drone holdouts and real-world defect datasets.</p>
+    </div>
+    <div class="metric-grid">
+      <div class="metric reveal"><b data-count="61.1" data-suffix="%">0</b><span>real drone defect recall on untouched UAV2K aerial test holdout (322 / 527 TP)</span></div>
+      <div class="metric danger reveal d1"><b data-count="46.2" data-suffix="%">0</b><span>mAP50-95 relative gain retrained at 640px native resolution (0.1127 → 0.1648)</span></div>
+      <div class="metric reveal d2"><b data-count="28">0</b><span>immutable mission events logged and verified deterministically</span></div>
+      <div class="metric amber reveal d3"><span class="tag">POLICY SAFETY</span><b data-count="0">0</b><span>false cleanings dispatched on structural cracks (100% human-in-the-loop escalation)</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 ARCHITECTURE ================= -->
+<section id="architecture">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">04 · System architecture</span>
+      <h2>Perception, policy, and simulation — <em>one closed loop.</em></h2>
+      <p class="lede">A 5-tier architecture connecting drone video ingestion, 640px neural defect detection, deterministic policy routing, simulated actuation, and 3D digital-twin telemetry.</p>
+    </div>
+    <div class="pipeline">
+      <div class="stage reveal"><span class="pulse"></span><span class="n">01 / INGESTION</span><h4>Ingest</h4><p>Drone video stream and high-res images processed via OpenCV frame sampling pipeline.</p><span class="flowtag">VIDEO_STREAM_SAMPLED</span></div>
+      <div class="stage reveal d1"><span class="pulse"></span><span class="n">02 / PERCEPTION</span><h4>Detect</h4><p>640px YOLOv8 + SAHI tiling with spatial IoU tracking and 4×3 façade panel localization.</p><span class="flowtag">DEFECT_BOUNDING_BOX</span></div>
+      <div class="stage reveal d2"><span class="pulse"></span><span class="n">03 / ADVISORY</span><h4>Reason</h4><p>Deterministic policy engine (CLEAN / ESCALATE) with advisory VLM second opinions for edge cases.</p><span class="flowtag">POLICY_EVALUATED</span></div>
+      <div class="stage reveal d3"><span class="pulse"></span><span class="n">04 / ACTION</span><h4>Act &amp; Log</h4><p>Simulated spray actuator command (SIMULATED_COMPLETE) and 28-event immutable ledger entry.</p><span class="flowtag">ACTUATOR_DISPATCHED</span></div>
+      <div class="stage reveal d4"><span class="pulse"></span><span class="n">05 / VERIFY</span><h4>Verify</h4><p>Re-inspection flight triggers fresh YOLO inference to confirm RESOLVED or maintain ESCALATED.</p><span class="flowtag">OUTCOME_VERIFIED</span></div>
+    </div>
+    <div class="arch-flow reveal">
+      <div class="arch-card">
+        <h3>Dual-tier compute — Drone Edge &amp; Cloud C2</h3>
+        <p>The REST proxy in this system mirrors the exact interface contract an NVIDIA Jetson Orin container exposes on the drone payload.</p>
+        <div class="dual">
+          <div>
+            <span class="label">Onboard edge (drone)</span>
+            <h4>Real-time perception</h4>
+            <ul>
+              <li>640px YOLOv8 inference with TensorRT acceleration</li>
+              <li>Spatial IoU tracking across consecutive frames</li>
+              <li>Fail-safe deterministic flight state machine</li>
+            </ul>
+          </div>
+          <div>
+            <span class="label">Ground C2 (dashboard)</span>
+            <h4>3D Digital Twin &amp; Ledger</h4>
+            <ul>
+              <li>Three.js interactive 3D façade panel mapping</li>
+              <li>28-event append-only immutable audit trail</li>
+              <li>Advisory VLM review and work order generation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="arch-card">
+        <h3>Deterministic Replay Guarantee</h3>
+        <p>The dashboard is an exact projection of the event log. Every flight replays deterministically with verifiable proof.</p>
+        <div class="events-row">
+          <span class="evt"><b>00.0s</b> FRAME_PROCESSED</span>
+          <span class="evt"><b>01.2s</b> DEFECT_DETECTED</span>
+          <span class="evt"><b>02.4s</b> POLICY_EVALUATED</span>
+          <span class="evt"><b>03.6s</b> CLEANING_DISPATCHED</span>
+          <span class="evt"><b>05.0s</b> REINSPECTION_RESOLVED</span>
+        </div>
+        <p style="margin-top:14px">Same drone footage + same configuration → identical 28-event trace every single run. Audit-ready compliance.</p>
+      </div>
+    </div>
+
+    <!-- System Topology Diagram Card -->
+    <div class="topology-diagram-card reveal" style="margin-top:28px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--panel);padding:24px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div>
+          <span class="eyebrow">Physical AI &amp; Hardware Architecture</span>
+          <h3 style="font-family:var(--font-display);font-size:22px;margin-top:4px">System Topology &amp; End-to-End Edge Pipeline</h3>
+        </div>
+        <span class="mono">Hardware Blueprint · Onboard Jetson &amp; Ground C2</span>
+      </div>
+      <div style="border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#030806;box-shadow:0 12px 40px rgba(0,0,0,0.6)">
+        <img src="system-topology.jpeg" onerror="this.src='docs/system-topology.jpeg'" alt="GlassEye System Topology Diagram" style="width:100%;height:auto;display:block" />
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5">
+        Comprehensive hardware &amp; software interconnect blueprint detailing drone perception sensors (RGB, Thermal, LiDAR, GPS, IMU), MAVLink flight controller, onboard Jetson Orin edge computing, deterministic policy routing, and cloud Three.js digital twin synchronization.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 ENGINEERING PROGRESSION ================= -->
+<section id="narrative">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">05 · Engineering narrative</span>
+      <h2>From 0% Baseline to <em>61.10% Drone Defect Recall.</em></h2>
+      <p class="lede">A 6-phase journey transitioning from procedural synthetic scaffolding to multi-domain 640px vision models and SAHI sliding-window tiling evaluated on 200 building-disjoint aerial drone holdouts.</p>
+    </div>
+    <div class="inno-grid">
+      <div class="inno reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="5"/></svg></div><h4>640px Native Resolution</h4><p>Retrained YOLOv8 at 640px native on Colab Tesla T4 GPU (50 epochs, AdamW), lifting BFDD mAP50-95 from 0.1127 to 0.1648 (+46.2%).</p><span class="proof">+23.1% mAP50 · +46.2% mAP50-95</span></div>
+      <div class="inno reveal d1"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><h4>SAHI High-Res Tiling</h4><p>Sliding-window 480px patch slicing with cross-tile NMS prevents thin hairline cracks (2–4px wide) from being crushed by downsampling.</p><span class="proof">7 → 46 → 322 TRUE POSITIVES</span></div>
+      <div class="inno reveal d2"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 17l5-6 4 4 6-8"/><path d="M4 21h16"/></svg></div><h4>3-Way Multi-Domain Synthesis</h4><p>Merged building defect datasets (BFDD), concrete bridge structures (CUBIT), and aerial drone surveys (UAV2K) into 2,899 leak-safe images.</p><span class="proof">+60.8% GENERALIZATION GAIN</span></div>
+    </div>
+
+    <!-- Engineering Story Progression Diagram Card -->
+    <div class="engineering-diagram-card reveal" style="margin-top:28px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--panel);padding:24px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div>
+          <span class="eyebrow">6-Phase Progression Roadmap</span>
+          <h3 style="font-family:var(--font-display);font-size:22px;margin-top:4px">Defect Detection Evolution: 0% → 61.10% Real Recall</h3>
+        </div>
+        <span class="mono">Empirical Benchmark Progression</span>
+      </div>
+      <div style="border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#030806;box-shadow:0 12px 40px rgba(0,0,0,0.6)">
+        <img src="engineering-story-diagram.png" onerror="this.src='docs/engineering-story-diagram.png'" alt="GlassEye Engineering Story Progression Diagram" style="width:100%;height:auto;display:block" />
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5">
+        Visual benchmark lineage tracing the transition across M1 (Synthetic Scaffolding, 0% Recall), M2 (BFDD Real Data, 14.1% in-domain), M3 (Multi-domain CUBIT Bridge, +60.8%), M4 (SAHI 480px Sliding-Window Tiling, 46 TP), M5 (Tesla T4 640px Native Retrain, 35.5%), and M6 (Current Production Checkpoint on Hugging Face, 61.10% Recall / 322 TP).
+      </p>
+    </div>
+
+    <!-- Interactive Milestones Deck -->
+    <div class="milestones-deck-wrapper reveal">
+      <div class="milestones-header">
+        <h3>Empirical Milestone Progression Matrix</h3>
+        <span class="mono">Click any milestone to inspect</span>
+      </div>
+      <div class="milestone-stepper-bar" id="milestoneBar"></div>
+      <div class="m-step-detail-card" id="milestoneDetail"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 07 CALCULATOR ================= -->
+<section id="calculator">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">06 · Interactive policy engine</span>
+      <h2>Score a Façade Anomaly <em>yourself.</em></h2>
+      <p class="lede">The same weighted scoring formula running in the production backend — live in your browser. Drag the signals and watch the policy engine respond.</p>
+    </div>
+    <div class="calc-wrap">
+      <div class="calc-panel reveal">
+        <h3>Defect Telemetry Signals</h3>
+        <div class="slider-row">
+          <div class="top"><label>YOLO Detector Confidence<span class="weight">w = 0.35</span></label><span class="val" id="vYolo">0.85</span></div>
+          <input type="range" id="sYolo" min="0" max="1" step="0.01" value="0.85" aria-label="YOLO confidence" />
+        </div>
+        <div class="slider-row">
+          <div class="top"><label>Defect Severity (Crack vs Grime)<span class="weight">w = 0.30</span></label><span class="val" id="vSev">0.75</span></div>
+          <input type="range" id="sSev" min="0" max="1" step="0.01" value="0.75" aria-label="Defect severity" />
+        </div>
+        <div class="slider-row">
+          <div class="top"><label>Area Fraction / Spatial Spread<span class="weight">w = 0.20</span></label><span class="val" id="vArea">0.40</span></div>
+          <input type="range" id="sArea" min="0" max="1" step="0.01" value="0.40" aria-label="Area fraction" />
+        </div>
+        <div class="slider-row">
+          <div class="top"><label>Advisory VLM Confirmation<span class="weight">w = 0.15</span></label><span class="val" id="vVlm">0.90</span></div>
+          <input type="range" id="sVlm" min="0" max="1" step="0.01" value="0.90" aria-label="VLM confirmation score" />
+        </div>
+        <p class="mono" style="margin-top:14px;color:var(--muted-2)">Policy thresholds: Integrity &lt; 40: Critical Escalation · 40–70: Wash Approved · &gt; 70: Nominal</p>
+      </div>
+      <div class="score-panel reveal d1">
+        <span class="eyebrow">Façade Integrity Index</span>
+        <div class="score-big"><span id="scoreVal">28.5</span><span class="unit">/100</span></div>
+        <div class="score-track">
+          <div class="score-fill" id="scoreFill"></div>
+          <div class="score-mark m45" style="left:40%"><span>40 · clean</span></div>
+          <div class="score-mark m85" style="left:70%"><span>70 · nominal</span></div>
+        </div>
+        <div class="score-state" id="scoreState">MANDATORY STRUCTURAL ESCALATION</div>
+        <div class="score-bars" id="scoreBars"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 ROADMAP ================= -->
+<section id="roadmap">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">07 · Production roadmap</span>
+      <h2>From working demo to <em>field-ready inspector.</em></h2>
+      <p class="lede">The software closed-loop is verified today. The hardware payload follows a defined modular interface contract.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-grid">
+        <div class="tl reveal"><span class="dot"></span><span class="when">Now</span><h4>V1 Prototype</h4><p>Closed decision loop verified — YOLO, policy, simulated actuator, Three.js twin.</p><span class="now">This Demo</span></div>
+        <div class="tl reveal d1"><span class="dot"></span><span class="when">Months 1–3</span><h4>V1.1 Domain Adaptation</h4><p>Fine-tuned multi-domain weights, VLM advisory layer, leak-safe split packaging.</p></div>
+        <div class="tl reveal d2"><span class="dot"></span><span class="when">Months 4–6</span><h4>Edge Jetson Payload</h4><p>TensorRT optimization on NVIDIA Jetson Orin Nano, MAVLink telemetry fusion.</p></div>
+        <div class="tl reveal d3"><span class="dot"></span><span class="when">Months 7–9</span><h4>Tower Pilot</h4><p>Autonomous drone flight pilot with a commercial high-rise tower facility partner.</p></div>
+        <div class="tl reveal d4"><span class="dot"></span><span class="when">Year 1</span><h4>Fleet Service</h4><p>Multi-building inspection SaaS, continuous building degradation tracking.</p></div>
+        <div class="tl reveal d5"><span class="dot"></span><span class="when">Year 2+</span><h4>National Network</h4><p>Autonomous façade maintenance networks for smart cities and urban infrastructure.</p></div>
+      </div>
+    </div>
+    <div class="phase-grid">
+      <div class="phase reveal"><span class="ph">PHASE 1 · SHIPPED</span><h4>Perception &amp; Loop</h4><ul><li>640px YOLOv8 native model</li><li>SAHI high-res tiling</li><li>Deterministic policy engine</li><li>28-event replay ledger</li><li>Three.js 3D building twin</li></ul></div>
+      <div class="phase reveal d1"><span class="ph">PHASE 2 · NEXT</span><h4>Drone Edge Payload</h4><ul><li>NVIDIA Jetson Orin deployment</li><li>MAVLink flight path sync</li><li>Physical spray actuator driver</li><li>Thermal sensor fusion</li><li>Thermal defect classifiers</li></ul></div>
+      <div class="phase reveal d2"><span class="ph">PHASE 3 · SCALE</span><h4>Enterprise Fleet SaaS</h4><ul><li>Multi-tower digital twin historical memory</li><li>Insurance claim cryptographic exports</li><li>Predictive sealant lifespan analytics</li><li>Autonomous battery-swap docks</li></ul></div>
+    </div>
+
+    <!-- Competitive Advantage Table -->
+    <div class="comp reveal">
+      <table>
+        <thead><tr><th>Capability</th><th>Manual Rope Access</th><th>One-Off Drone Pilot</th><th>Generic YOLO Demos</th><th class="ours">GlassEye Platform</th></tr></thead>
+        <tbody>
+          <tr><td>Inspection Frequency</td><td>1–2× / year</td><td>Ad-hoc manual</td><td>N/A (model only)</td><td class="ours chk">Continuous / On-Demand</td></tr>
+          <tr><td>Life Safety Risk</td><td class="x">Extreme (Workers at height)</td><td>Low (Ground pilot)</td><td>N/A</td><td class="ours chk">Zero (Fully autonomous)</td></tr>
+          <tr><td>Hairline Crack Detection</td><td class="part">Subjective eyeball</td><td class="x">Squashed (320px blur)</td><td class="x">0% out-of-domain</td><td class="ours chk">61.1% Drone Holdout (SAHI)</td></tr>
+          <tr><td>Deterministic Policy Routing</td><td class="x">No policy code</td><td class="x">No policy code</td><td class="x">No</td><td class="ours chk">Yes (CLEAN vs ESCALATE)</td></tr>
+          <tr><td>Closed-Loop Reinspection</td><td class="x">No</td><td class="x">No</td><td class="x">No</td><td class="ours chk">Yes (Re-verify outcome)</td></tr>
+          <tr><td>Persistent 3D Digital Twin</td><td class="x">Paper clipboard</td><td class="x">Folder of MP4s</td><td class="x">Static 2D bbox</td><td class="ours chk">Three.js 3D Panel Ledger</td></tr>
+          <tr><td>Cryptographic Event Trail</td><td class="x">No</td><td class="x">No</td><td class="x">No</td><td class="ours chk">Yes (28 Immutable Events)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 09 CLOSING & TEAM ================= -->
+<section id="closing">
+  <div class="wrap">
+    <span class="eyebrow reveal">National Hackathon · Round 1 Submission</span>
+    <div class="big reveal d1">Give us the next round to prove<br><span class="lime">this loop on a real building.</span></div>
+    <p class="lede reveal d2">We built the perception, the policy engine, and the digital twin. Partner with us to deploy autonomous drone inspection on India's glass towers.</p>
+    <div class="actions reveal d3">
+      <a href="https://github.com/sanjeevafk/glasseye/" target="_blank" rel="noopener" class="btn">GitHub Repository ↗</a>
+      <a href="https://glasseye-td75.onrender.com/" target="_blank" rel="noopener" class="btn ghost">Live Render Web App</a>
+      <a href="https://huggingface.co/sanjeevafk/glasseye-yolo" target="_blank" rel="noopener" class="btn ghost">Hugging Face Model</a>
+      <a href="#hero" class="btn ghost">Back to start ↑</a>
+    </div>
+    <div class="team reveal d4">
+      <div class="member"><b>Ashish S</b><span>Data Engineer</span><p>Synthetic generation, multi-domain pipeline, leak-safe dataset splits</p></div>
+      <div class="member"><b>Sanjeev Kumar</b><span>ML Engineer</span><p>YOLOv8 640px native training, SAHI tiling, PyTorch inference optimization</p></div>
+      <div class="member"><b>Aadhithan B</b><span>UI/UX Designer</span><p>Tactical aerospace HUD, dark architectural brutalism, 3D spatial aesthetics</p></div>
+      <div class="member"><b>Prajan SS</b><span>Frontend Developer</span><p>Three.js 3D façade twin, interactive HUD scrubber, deterministic replay</p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <span>GLASSEYE · Autonomous Glass-Façade Inspection &amp; Response · National Hackathon 2026</span>
+      <span class="mono" style="display:block;margin-top:8px">Model Checkpoint: <b>sanjeevafk/glasseye-yolo (640px)</b> · Production Model live on Hugging Face</span>
+      <span class="mono" style="display:block;margin-top:4px">Single Port Docker &amp; Live Web Application: <b>https://glasseye-td75.onrender.com</b></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ================= SPEAKER NOTES DATA ================= */
+const NOTES = {
+  hero:[
+    "⏱ 0:00 – 0:45 · THE HOOK & SYSTEM OVERVIEW",
+    "Open with the defining thesis: 'Façade inspection today ends with a bounding box on a static photo. GlassEye closes the entire loop: perceive, decide, act, and verify on a persistent 3D digital twin.'",
+    "State the core technical facts up front: 640px native YOLOv8 + SAHI tiling + deterministic policy engine + Three.js building twin.",
+    "Mention the live Render deployment and public Hugging Face model checkpoint (sanjeevafk/glasseye-yolo) to prove engineering depth."
+  ],
+  problem:[
+    "⏱ 0:45 – 2:00 · THE HIGH-RISE FAÇADE CRISIS",
+    "Paint the physical-world reality: ₹1,000s of crores in glass-façade towers across India, checked only 1–2 times per year by rope-access teams.",
+    "Explain what goes wrong between visits: sealant degradation, uncleaned surface stains mistaken for structural risk, and hairline cracks that widen under load.",
+    "Highlight the key bottleneck: standard downscaling squashes thin 2–4px hairline cracks into blur before the first convolution layer."
+  ],
+  solution:[
+    "⏱ 2:00 – 3:15 · THE 5-STAGE CLOSED INSPECTION LOOP",
+    "Walk through the 5 steps: 1. SEE (YOLO extraction) → 2. UNDERSTAND (Semantic classification) → 3. DECIDE (Deterministic policy) → 4. ACT (Simulated actuation) → 5. VERIFY (Re-inspection).",
+    "Emphasize our safety guardrail: Advisory VLM findings route strictly to human review, never unverified autonomous action.",
+    "Highlight the closed-loop proof: verification results re-trigger detection before a defect is marked resolved."
+  ],
+  "video-demo":[
+    "⏱ 3:15 – 5:00 · UNCUT 101s VIDEO FLIGHT DEMO",
+    "Play or scrub through the 9 video chapters: show real-time defect scoring on Panel A2/C2, advisory VLM review, cleaning dispatch modal, maintenance work order, and the 28-event replay timeline.",
+    "Point out the dual outcomes: Panel B17 surface stain is cleaned and verified RESOLVED; Panel C11 structural crack is withheld and marked ESCALATED.",
+    "Stress that this run is 100% deterministic: same video input produces the exact same 28-event ledger trace every single time."
+  ],
+  metrics:[
+    "⏱ 5:00 – 6:00 · EMPIRICAL BENCHMARK METRICS",
+    "Highlight that all metrics were measured on untouched, building-disjoint aerial drone holdouts, not training validation sets.",
+    "Call out the headline numbers: 61.10% true defect recall (322 / 527 defect boxes captured) on the 200-image UAV2K benchmark.",
+    "Show the 640px native retrain impact: +23.1% mAP50 and +46.2% mAP50-95 over the 320px baseline."
+  ],
+  architecture:[
+    "⏱ 6:00 – 7:15 · SYSTEM ARCHITECTURE & 28-EVENT LEDGER",
+    "Explain the 5 pipelines: Ingestion, Perception/Tracking, Advisory/Decision, Action/Ledger, Serving/3D UI.",
+    "Show how big image crops stay out of telemetry by using content-addressed evidence refs.",
+    "Walk through the dual-tier edge vs ground architecture: Jetson Orin onboard detection + Three.js C2 dashboard."
+  ],
+  narrative:[
+    "⏱ 7:15 – 8:15 · 6-PHASE ENGINEERING PROGRESSION",
+    "Walk through the progression: M1 Synthetic (0%) → M2 BFDD (14.1%) → M3 CUBIT (+60.8%) → M4 SAHI (46 TP) → M5 640px (35.5%) → M6 Current Best (61.10% Recall / 322 TP).",
+    "Explain SAHI sliding-window tiling: slicing frames into 480px patches with coordinate translation stops hairline crack decimation without increasing model compute."
+  ],
+  calculator:[
+    "⏱ 8:15 – 9:00 · INTERACTIVE POLICY & INTEGRITY CALCULATOR",
+    "Invite a judge to drag the sliders: show how defect severity, area fraction, and VLM confidence calculate the 0–100 Façade Integrity Index.",
+    "Demonstrate policy thresholds: low integrity triggers immediate structural escalation without cleaning."
+  ],
+  roadmap:[
+    "⏱ 9:00 – 9:40 · ROADMAP & COMPETITIVE EDGE",
+    "Now (V1): Closed-loop prototype verified. Months 1–6: Jetson Orin edge deployment. Months 7–12: High-rise commercial tower flight pilot.",
+    "Compare against alternatives: rope access is high-risk/manual, generic drones lack deterministic decision policies, GlassEye provides an end-to-end verified closed loop."
+  ],
+  closing:[
+    "⏱ 9:40 – 10:00 · CONCLUSION & THE ASK",
+    "Close on the core ask: 'Give us the next round to prove this loop on a real building.'",
+    "Introduce the team: Ashish (Data), Sanjeev (ML), Aadhithan (UI/UX), Prajan (Frontend). Open the live Three.js 3D dashboard for judge Q&A."
+  ]
+};
+
+const SECTION_IDS = ["hero","problem","solution","video-demo","metrics","architecture","narrative","calculator","roadmap","closing"];
+
+const MILESTONES = [
+  {id:"M1",label:"Synthetic Only",res:"320px",imgs:"20 SVG Imgs",tp:"0 / 527",recall:"0.0%",ap50:"0.0000",status:"Synthetic Scaffolding",detail:"Initial synthetic procedural proof of concept; suffered complete out-of-domain transfer failure on real drone holdouts."},
+  {id:"M2",label:"BFDD Real Data",res:"320px",imgs:"600 Façades",tp:"0 / 527",recall:"0.0% (14.1% BFDD)",ap50:"0.0940",status:"Real Building Façades",detail:"Trained on real Building Façade Defect Dataset (BFDD); learned true building textures and stains but missed distant aerial drone cracks."},
+  {id:"M3",label:"BFDD + CUBIT",res:"320px",imgs:"1,299 Imgs",tp:"7 / 527",recall:"1.3%",ap50:"0.0132 (+60.8% BFDD)",status:"Multi-Domain Bridge",detail:"Adding polygon-annotated concrete bridge defect imagery provided diverse civil structural degradation patterns, lifting BFDD test mAP by +60.8%."},
+  {id:"M4",label:"SAHI Tiling",res:"480px Slices",imgs:"1,299 Imgs + Tiling",tp:"46 / 527",recall:"8.7%",ap50:"0.0362 (+557% TP)",status:"Sub-Pixel Breakthrough",detail:"Sliding-window tiling with cross-patch NMS stopped hairline cracks (2–4px wide) from being crushed by full-frame downsampling without retraining."},
+  {id:"M5",label:"3-Way 640px Native",res:"640px Native",imgs:"2,899 Imgs (Tesla T4)",tp:"187 / 527",recall:"35.5%",ap50:"0.2316 (6.5× gain)",status:"Native High-Res Model",detail:"Fine-tuned YOLOv8 at 640px native resolution on a unified 3-way dataset (BFDD + CUBIT + UAV2K), tripling precision and recall."},
+  {id:"M6",label:"Current Best Model",res:"640px Native",imgs:"Unified 3-Way + SAHI",tp:"322 / 527",recall:"61.10%",ap50:"0.2774",status:"Production Checkpoint",detail:"Current converged checkpoint on Hugging Face (sanjeevafk/glasseye-yolo): captures 61.1% of all real drone defects on untouched building-disjoint holdouts."}
+];
+
+const VIDEO_CHAPTERS = [
+  {time:0,timeStr:"00:00",title:"Mission Overview & 3D Twin",desc:"GlassEye autonomous façade inspection and live Three.js digital twin dashboard overview.",badge:"MISSION OVERVIEW"},
+  {time:15,timeStr:"00:15",title:"Interactive YOLO Defect Scanner",desc:"Loading high-resolution façade photo presets with instant real-time defect bounding-box detection.",badge:"PERCEPTION"},
+  {time:32,timeStr:"00:32",title:"Spalling Detection & Integrity 25/100",desc:"YOLOv8 detects concrete spalling across Panels A2 & C2; automated cleaning approved.",badge:"CLEANABLE ISSUE"},
+  {time:48,timeStr:"00:48",title:"Concrete Fracture & Advisory VLM",desc:"Structural fracture detected; Advisory VLM review escalates for human engineer safety check.",badge:"STRUCTURAL SAFETY"},
+  {time:65,timeStr:"01:05",title:"Autonomous Drone Mission Flight",desc:"Executing deterministic flight mission with video inference, IOU tracking, and simulated remediation.",badge:"CLOSED LOOP"},
+  {time:78,timeStr:"01:18",title:"Cleaning Command Dispatch",desc:"Policy approves surface cleaning; simulated command dispatched to target panel.",badge:"ACTUATOR SIGNAL"},
+  {time:88,timeStr:"01:28",title:"Structural Work Order Dispatch",desc:"Structural crack prohibits cleaning; human maintenance work order ticket logged in ledger.",badge:"DISPATCH TICKET"},
+  {time:98,timeStr:"01:38",title:"3D Façade Twin & 28-Event Replay",desc:"Interactive 3D grid and step-by-step playback of the append-only event ledger.",badge:"DIGITAL TWIN"},
+  {time:101,timeStr:"01:50",title:"Closed-Loop Outcome Verification",desc:"Post-remediation reinspection verifies Panel B2 Resolved and Panel C3 Escalated.",badge:"OUTCOME PROOF"}
+];
+
+/* ---------- helpers ---------- */
+const $ = (s, c=document) => c.querySelector(s);
+const $$ = (s, c=document) => Array.from(c.querySelectorAll(s));
+const clamp = (v,min,max) => Math.min(max,Math.max(min,v));
+
+/* ---------- progress + scroll state ---------- */
+const progress = $("#progress");
+const onScroll = () => {
+  const h = document.documentElement;
+  const pct = h.scrollTop / (h.scrollHeight - h.clientHeight);
+  progress.style.width = (pct*100).toFixed(2)+"%";
+  document.body.classList.toggle("scrolled", h.scrollTop > 40);
+};
+addEventListener("scroll", onScroll, {passive:true}); onScroll();
+
+/* ---------- reveal on scroll ---------- */
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} });
+},{threshold:.12, rootMargin:"0px 0px -8% 0px"});
+$$(".reveal").forEach(el=>io.observe(el));
+
+/* ---------- count up ---------- */
+const countIO = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting) return;
+    const el = e.target, target = parseFloat(el.dataset.count||"0");
+    const suffix = el.dataset.suffix||"";
+    const dur = 1400, t0 = performance.now();
+    const tick = (t)=>{
+      const p = clamp((t-t0)/dur,0,1), ease = 1-Math.pow(1-p,3);
+      const val = target % 1 === 0 ? Math.round(target*ease) : (target*ease).toFixed(1);
+      el.textContent = val + suffix;
+      if(p<1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    countIO.unobserve(el);
+  });
+},{threshold:.5});
+$$("[data-count]").forEach(el=>countIO.observe(el));
+
+/* ---------- slide nav / keyboard ---------- */
+const slideLabel = $("#slideLabel"), slideCount = $("#slideCount");
+const updateSlide = ()=>{
+  const idx = SECTION_IDS.findIndex(id=>{
+    const s = document.getElementById(id); if(!s) return false;
+    const r = s.getBoundingClientRect();
+    return r.top <= window.innerHeight*0.45 && r.bottom > window.innerHeight*0.45;
+  });
+  const i = idx>=0?idx:SECTION_IDS.length-1;
+  slideCount.textContent = String(i+1).padStart(2,"0")+" / "+String(SECTION_IDS.length).padStart(2,"0");
+  slideLabel.textContent = "GlassEye · "+SECTION_IDS[i].toUpperCase();
+};
+addEventListener("scroll", updateSlide, {passive:true}); updateSlide();
+
+addEventListener("keydown",(e)=>{
+  const tag = document.activeElement && document.activeElement.tagName;
+  if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT") return;
+  const cur = SECTION_IDS.findIndex(id=>{
+    const s = document.getElementById(id); if(!s) return false;
+    const r = s.getBoundingClientRect();
+    return r.top <= window.innerHeight*0.5 && r.bottom > window.innerHeight*0.5;
+  });
+  const active = cur>=0?cur:0;
+  if(e.key==="ArrowRight"||e.key==="ArrowDown"&&e.shiftKey||e.key==="PageDown"){
+    const next = clamp(active+1,0,SECTION_IDS.length-1);
+    document.getElementById(SECTION_IDS[next]).scrollIntoView({behavior:"smooth"});
+  }else if(e.key==="ArrowLeft"||e.key==="ArrowUp"&&e.shiftKey||e.key==="PageUp"){
+    const prev = clamp(active-1,0,SECTION_IDS.length-1);
+    document.getElementById(SECTION_IDS[prev]).scrollIntoView({behavior:"smooth"});
+  }else if(e.key==="Home"){ window.scrollTo({top:0,behavior:"smooth"}); }
+  else if(e.key==="End"){ document.getElementById("closing").scrollIntoView({behavior:"smooth"}); }
+  else if(e.key==="s"||e.key==="S"){ toggleNotes(); }
+});
+
+/* ---------- speaker notes drawer ---------- */
+const notesBody = $("#notesBody");
+SECTION_IDS.forEach(id=>{
+  const notes = NOTES[id]||[];
+  const h = document.createElement("h5"); h.textContent = id.toUpperCase();
+  notesBody.appendChild(h);
+  notes.forEach(n=>{ const p = document.createElement("p"); p.textContent = n; notesBody.appendChild(p); });
+});
+const toggleNotes = ()=>{
+  const open = $("#notesDrawer").classList.toggle("open");
+  $("#notesBtn").classList.toggle("active", open);
+  $("#notesBtn").setAttribute("aria-expanded", String(open));
+};
+$("#notesBtn").addEventListener("click", toggleNotes);
+$("#notesClose").addEventListener("click", ()=> $("#notesDrawer").classList.remove("open"));
+
+/* ---------- video demo player & chapters ---------- */
+const video = $("#pitchVideo");
+const playBtn = $("#playBtn");
+const scrubberFill = $("#scrubberFill");
+const scrubberBar = $("#scrubberBar");
+const timeDisplay = $("#timeDisplay");
+const hudChapterBadge = $("#hudChapterBadge");
+const narrationTimestamp = $("#narrationTimestamp");
+const narrationDesc = $("#narrationDesc");
+const chaptersList = $("#chaptersList");
+
+const fmtTime = (secs) => {
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+// Render chapter items in sidebar
+VIDEO_CHAPTERS.forEach((chap, idx) => {
+  const item = document.createElement("div");
+  item.className = `chapter-item ${idx === 0 ? 'active' : ''}`;
+  item.innerHTML = `
+    <div class="chap-top"><span class="chap-time">${chap.timeStr}</span><span class="chap-tag">${chap.badge}</span></div>
+    <div class="chap-name">${chap.title}</div>
+    <div class="chap-desc">${chap.desc}</div>
+  `;
+  item.addEventListener("click", () => {
+    if (video) {
+      video.currentTime = chap.time;
+      void video.play();
+      playBtn.textContent = "⏸ PAUSE";
+    }
+  });
+  chaptersList.appendChild(item);
+});
+
+if (video) {
+  playBtn.addEventListener("click", () => {
+    if (video.paused) {
+      void video.play();
+      playBtn.textContent = "⏸ PAUSE";
+    } else {
+      video.pause();
+      playBtn.textContent = "▶ PLAY";
+    }
+  });
+
+  $("#rewindBtn").addEventListener("click", () => { video.currentTime = Math.max(0, video.currentTime - 5); });
+  $("#forwardBtn").addEventListener("click", () => { video.currentTime = Math.min(video.duration || 101, video.currentTime + 5); });
+
+  video.addEventListener("timeupdate", () => {
+    const cur = video.currentTime;
+    const dur = video.duration || 101.36;
+    const pct = (cur / dur) * 100;
+    scrubberFill.style.width = pct + "%";
+    timeDisplay.textContent = `${fmtTime(cur)} / ${fmtTime(dur)}`;
+
+    // Sync active chapter
+    let activeIdx = 0;
+    for (let i = 0; i < VIDEO_CHAPTERS.length; i++) {
+      if (cur >= VIDEO_CHAPTERS[i].time) activeIdx = i;
+    }
+    const act = VIDEO_CHAPTERS[activeIdx];
+    hudChapterBadge.textContent = act.badge;
+    narrationTimestamp.textContent = `${act.timeStr} · ${act.title.toUpperCase()}`;
+    narrationDesc.textContent = act.desc;
+
+    $$(".chapter-item").forEach((el, idx) => {
+      el.classList.toggle("active", idx === activeIdx);
+    });
+  });
+
+  scrubberBar.addEventListener("click", (e) => {
+    const rect = scrubberBar.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    video.currentTime = ratio * (video.duration || 101.36);
+  });
+
+  $$(".speed-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      $$(".speed-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      video.playbackRate = parseFloat(btn.dataset.spd);
+    });
+  });
+}
+
+/* ---------- interactive milestones ---------- */
+const milestoneBar = $("#milestoneBar");
+const milestoneDetail = $("#milestoneDetail");
+
+function renderMilestoneDetail(m) {
+  milestoneDetail.innerHTML = `
+    <div class="m-detail-top">
+      <div>
+        <span class="eyebrow">${m.id} · ${m.status}</span>
+        <h4 style="font-family:var(--font-display);font-size:20px;margin-top:4px">${m.label} (${m.imgs} · ${m.res})</h4>
+      </div>
+      <div class="m-stats-pills">
+        <div class="m-pill">TRUE POSITIVES <b>${m.tp}</b></div>
+        <div class="m-pill">REAL RECALL <b>${m.recall}</b></div>
+        <div class="m-pill">AP@50 <b>${m.ap50}</b></div>
+      </div>
+    </div>
+    <p style="font-size:14px;color:var(--muted);line-height:1.5">${m.detail}</p>
+  `;
+}
+
+MILESTONES.forEach((m, idx) => {
+  const card = document.createElement("div");
+  card.className = `m-step-card ${idx === 5 ? 'active' : ''}`;
+  card.innerHTML = `
+    <span class="m-step-id">${m.id}</span>
+    <span class="m-step-name">${m.label}</span>
+    <span class="m-step-recall">${m.recall.split(' ')[0]}</span>
+  `;
+  card.addEventListener("click", () => {
+    $$(".m-step-card").forEach(c => c.classList.remove("active"));
+    card.classList.add("active");
+    renderMilestoneDetail(m);
+  });
+  milestoneBar.appendChild(card);
+});
+renderMilestoneDetail(MILESTONES[5]);
+
+/* ---------- policy & integrity calculator ---------- */
+const sYolo = $("#sYolo"), sSev = $("#sSev"), sArea = $("#sArea"), sVlm = $("#sVlm");
+const vYolo = $("#vYolo"), vSev = $("#vSev"), vArea = $("#vArea"), vVlm = $("#vVlm");
+
+function recalcPolicy() {
+  const y = +sYolo.value, s = +sSev.value, a = +sArea.value, v = +sVlm.value;
+  vYolo.textContent = y.toFixed(2);
+  vSev.textContent = s.toFixed(2);
+  vArea.textContent = a.toFixed(2);
+  vVlm.textContent = v.toFixed(2);
+
+  // Health index decreases as defect severity / spread increases
+  const penalty = (0.35 * y * s + 0.30 * s + 0.20 * a + 0.15 * v) * 100;
+  const integrity = Math.max(0, Math.min(100, 100 - penalty));
+
+  $("#scoreVal").textContent = integrity.toFixed(1);
+  $("#scoreFill").style.width = integrity + "%";
+
+  const stateEl = $("#scoreState");
+  if (integrity < 40) {
+    stateEl.textContent = "MANDATORY STRUCTURAL ESCALATION · CLEANING PROHIBITED";
+    stateEl.style.color = "var(--red)";
+  } else if (integrity < 70) {
+    stateEl.textContent = "APPROVED: SURFACE REMEDIATION WASH DISPATCH";
+    stateEl.style.color = "var(--emerald)";
+  } else {
+    stateEl.textContent = "NOMINAL FAÇADE · ROUTINE SCAN CONTINUED";
+    stateEl.style.color = "var(--acid)";
+  }
+
+  const bars = $("#scoreBars");
+  bars.innerHTML = `
+    <div class="sbar"><span class="nm">YOLO CONF</span><div class="bar"><div class="fill" style="width:${y*100}%;background:var(--emerald)"></div></div><span class="pt">${(y*35).toFixed(1)}</span></div>
+    <div class="sbar"><span class="nm">SEVERITY</span><div class="bar"><div class="fill" style="width:${s*100}%;background:var(--acid)"></div></div><span class="pt">${(s*30).toFixed(1)}</span></div>
+    <div class="sbar"><span class="nm">AREA SPREAD</span><div class="bar"><div class="fill" style="width:${a*100}%;background:var(--teal)"></div></div><span class="pt">${(a*20).toFixed(1)}</span></div>
+    <div class="sbar"><span class="nm">VLM SECOND OP</span><div class="bar"><div class="fill" style="width:${v*100}%;background:var(--emerald)"></div></div><span class="pt">${(v*15).toFixed(1)}</span></div>
+  `;
+}
+
+[sYolo, sSev, sArea, sVlm].forEach(input => input.addEventListener("input", recalcPolicy));
+recalcPolicy();
+</script>
+</body>
+</html>
