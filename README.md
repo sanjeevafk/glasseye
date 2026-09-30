@@ -2,77 +2,62 @@
 
 **AI-Powered Façade Inspection & Remediation Simulator**
 
-GlassEye is an end-to-end building façade inspection platform combining fine-tuned YOLO defect detection, 4×3 panel localization, automated policy recommendations, advisory VLM reviews, and a closed-loop drone mission simulator with a 3D Three.js dashboard.
+GlassEye is an end-to-end building façade inspection platform. It detects visible defects from imagery or drone video with a fine-tuned YOLO model, localizes them to façade panels, recommends clean-or-escalate actions, and simulates remediation — then reinspects the same area to verify the outcome.
 
 [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-glasseye--yolo-blue)](https://huggingface.co/sanjeevafk/glasseye-yolo)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-brightgreen)](https://glasseye-td75.onrender.com)
-
----
-
-## System Topology & Architecture
-
-### Autonomous Inspection Loop
-![GlassEye Autonomous Façade Inspection Loop](docs/system-topology.jpeg)
-
-### System Architecture & Whiteboard Design
-![GlassEye Architecture & Dataflow](docs/glasseye-whiteboard.jpg)
 
 ---
 
 ## Features
 
-- **Aerial Drone Video Scanner**: Upload drone survey flight recordings (MP4/WebM/MOV) or choose 1-click flight presets. Runs native-resolution YOLO inference with configurable frame sampling, synchronized video playback with live bounding-box HUD, an interactive flight timeline scrubber, and a 4×3 cumulative façade damage heatmap.
-- **Interactive Façade Scanner**: Upload high-resolution building façade photos or choose 1-click test presets to get instant YOLO defect bounding boxes, 4×3 panel grid coordinates, and a 0–100 Façade Integrity Index.
-- **Automated Dispatch Policy**: Recommends actionable steps (`SIMULATED CLEAN APPROVAL`, `MANDATORY STRUCTURAL ESCALATION`, `MAINTENANCE SCHEDULE`).
-- **Advisory VLM Second Opinions**: Routes high-impact defect crops to a Vision-Language Model for independent second-opinion verification.
-- **Closed-Loop Drone Simulation**: Replays a full drone flight scenario with video inference, IOU tracking, simulated cleaning commands, and post-remediation verification.
-- **Three.js 3D Panel Map**: Visualizes real-time status (`resolved`, `escalated`, `active`) across building geometry with automatic 2D fallback for headless/non-WebGL environments.
+- **Aerial Drone Video Scanner** — Upload drone survey recordings (MP4/WebM/MOV) or pick a 1-click flight preset. Runs native-resolution YOLO inference with configurable frame sampling, synchronized playback with a live bounding-box HUD, a flight timeline scrubber, and a 4×3 cumulative damage heatmap.
+- **Interactive Façade Scanner** — Upload high-resolution façade photos or pick a 1-click test preset for instant defect boxes, 4×3 panel grid coordinates, and a 0–100 Façade Integrity Index.
+- **Automated Dispatch Policy** — Recommends next steps (`SIMULATED CLEAN APPROVAL`, `MANDATORY STRUCTURAL ESCALATION`, `MAINTENANCE SCHEDULE`).
+- **Advisory VLM Second Opinions** — Routes high-impact defect crops to a Vision-Language Model for independent verification.
+- **Closed-Loop Drone Simulation** — Replays a full flight with video inference, IOU tracking, simulated cleaning, and post-remediation verification.
+- **Three.js 3D Panel Map** — Visualizes real-time status (`resolved`, `escalated`, `active`) across building geometry, with automatic 2D fallback for headless environments.
 
 ---
 
 ## Quickstart
 
-### 1. Installation
-
 ```bash
 make setup
 ```
 
-### 2. Run Local Application
+Start the backend (FastAPI) in one terminal:
 
-Start backend (FastAPI):
 ```bash
 make backend
 ```
 
-In a second terminal, start frontend (Vite / React):
+Start the frontend (Vite / React) in a second terminal:
+
 ```bash
 make frontend
 ```
 
-Open [http://127.0.0.1:5173](http://127.0.0.1:5173) in your browser.
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173).
 
-### 3. Run Automated Tests
+### Tests
 
 ```bash
-# Run backend tests + ruff linting
+# Backend: ruff lint + pytest
 .venv/bin/ruff check .
 PYTHONPATH=backend .venv/bin/pytest backend/tests -q
 
-# Run frontend Playwright E2E browser tests
+# Frontend: Playwright E2E browser tests
 npm --prefix frontend run test:e2e
 ```
 
 ---
 
-## Trained Model Checkpoints
+## Trained Model
 
-The active production model is trained on real Building Façade Defect Dataset (BFDD), CUBIT concrete defects, and high-altitude UAV2K aerial drone surveys:
+The active production model is trained on the Building Façade Defect Dataset (BFDD), CUBIT concrete defects, and high-altitude UAV2K aerial survey footage.
 
 - **Hugging Face Hub**: [`sanjeevafk/glasseye-yolo`](https://huggingface.co/sanjeevafk/glasseye-yolo)
 - **Local Checkpoint**: `models/glasseye-yolo-bfdd-cubit-v1/best.pt`
-
-### Python Inference Snippet
 
 ```python
 from ultralytics import YOLO
@@ -84,9 +69,9 @@ results[0].show()
 
 ---
 
-## Production Deployment
+## Deployment
 
-The application runs as a single self-contained Docker container serving the compiled React frontend and FastAPI backend on a single port:
+GlassEye ships as a single self-contained Docker container serving the compiled React frontend and FastAPI backend on one port:
 
 ```bash
 docker build -t glasseye-demo .
@@ -99,10 +84,10 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000). A `render.yaml` blueprint i
 
 ## Documentation
 
-- [`docs/engineering-story.md`](docs/engineering-story.md): **The Full Engineering Story: From 0% Synthetic Baseline to 61.1% Drone Defect Recall**
-- [`docs/architecture.md`](docs/architecture.md): Core system design and state machines
-- [`docs/sahi-inference.md`](docs/sahi-inference.md): Sliced Aided Hyper Inference (SAHI) and high-res drone benchmark metrics
-- [`docs/data-card.md`](docs/data-card.md): Dataset sources, licensing, and annotation schemas
-- [`docs/bfdd-cubit-experiment.md`](docs/bfdd-cubit-experiment.md): Benchmark results across BFDD, CUBIT, and UAV2K
-- [`docs/cubit-data-card.md`](docs/cubit-data-card.md): CUBIT concrete defect dataset card
-- [`docs/uav2k-data-card.md`](docs/uav2k-data-card.md): UAV2K high-resolution drone façade dataset card
+- [`docs/engineering-story.md`](docs/engineering-story.md) — From 0% synthetic baseline to 61.1% drone defect recall
+- [`docs/architecture.md`](docs/architecture.md) — Core system design and state machines
+- [`docs/sahi-inference.md`](docs/sahi-inference.md) — SAHI inference and high-res drone benchmark metrics
+- [`docs/data-card.md`](docs/data-card.md) — Dataset sources, licensing, and annotation schemas
+- [`docs/bfdd-cubit-experiment.md`](docs/bfdd-cubit-experiment.md) — Benchmark results across BFDD, CUBIT, and UAV2K
+- [`docs/cubit-data-card.md`](docs/cubit-data-card.md) — CUBIT concrete defect dataset card
+- [`docs/uav2k-data-card.md`](docs/uav2k-data-card.md) — UAV2K high-resolution drone façade dataset card
