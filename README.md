@@ -4,8 +4,6 @@
 
 GlassEye is an end-to-end building façade inspection platform. It detects visible defects from imagery or drone video with a fine-tuned YOLO model, localizes them to façade panels, recommends clean-or-escalate actions, and simulates remediation — then reinspects the same area to verify the outcome.
 
-[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-glasseye--yolo-blue)](https://huggingface.co/sanjeevafk/glasseye-yolo)
-
 ---
 
 ## Features
