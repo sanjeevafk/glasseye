@@ -367,11 +367,20 @@ export function VideoInspector() {
       )}
 
       {/* Highlight Frames Reel */}
-      {result && result.highlight_frames.length > 0 && (
+      {result && result.highlight_frames.length > 0 && (() => {
+        const filterParts = selectedPanelFilter ? selectedPanelFilter.split("-") : null;
+        const panelCode = filterParts ? `${"ABCD"[Number(filterParts[1])]}${"123"[Number(filterParts[2])]}` : null;
+        const visibleHighlights = panelCode
+          ? result.highlight_frames.filter((hf) => hf.detections.some((d) => d.panel_id === panelCode))
+          : result.highlight_frames;
+        return (
         <div className="highlight-frames-section" data-testid="video-highlights-reel">
-          <h3>CRITICAL FLIGHT DETECTIONS ({result.highlight_frames.length} KEY FRAMES)</h3>
+          <h3>
+            CRITICAL FLIGHT DETECTIONS ({visibleHighlights.length} KEY FRAMES
+            {selectedPanelFilter ? ` · FILTERED BY ${selectedPanelFilter}` : ""})
+          </h3>
           <div className="highlights-grid">
-            {result.highlight_frames.map((hf) => (
+            {visibleHighlights.map((hf) => (
               <div
                 key={`hl-${hf.frame_index}`}
                 className="highlight-card"
@@ -393,7 +402,8 @@ export function VideoInspector() {
             ))}
           </div>
         </div>
-      )}
+        );
+      })()}
     </section>
   );
 }

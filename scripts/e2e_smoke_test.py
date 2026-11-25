@@ -94,7 +94,7 @@ def run_smoke_test(target_url: str = BASE_URL) -> int:
                 dets = len(data.get("detections", []))
                 badge = data.get("primary_recommendation", {}).get("badge")
                 has_vlm = data.get("vlm_review") is not None
-                has_preview = data.get("annotated_image_base64", "").startswith(
+                has_preview = data.get("annotated_image", "").startswith(
                     "data:image/jpeg;base64,"
                 )
                 record_pass(

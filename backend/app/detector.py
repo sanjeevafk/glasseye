@@ -190,6 +190,7 @@ class YoloDetector:
                 detections.append(
                     Detection(
                         class_name=class_name,
+                        raw_class_name=raw_name,
                         class_id=class_id,
                         confidence=round(confidence, 6),
                         bbox_xyxy=[

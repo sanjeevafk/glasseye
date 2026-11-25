@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Annotated
 
 import numpy as np
@@ -206,17 +207,23 @@ async def inspect_custom_video(
             return result.model_dump(mode="json")
 
         if sample_filename:
-            # Locate sample file
-            target_path = samples_root() / sample_filename
-            if not target_path.is_file() and (artifacts_root() / "samples" / sample_filename).is_file():
-                target_path = artifacts_root() / "samples" / sample_filename
+            safe_name = Path(sample_filename).name
+            if safe_name != sample_filename or Path(sample_filename).is_absolute():
+                raise HTTPException(status_code=400, detail="Invalid sample_filename.")
+
+            target_path = (samples_root() / safe_name).resolve()
+            if not target_path.is_relative_to(samples_root().resolve()) or not target_path.is_file():
+                alt_root = (artifacts_root() / "samples").resolve()
+                alt_path = (alt_root / safe_name).resolve()
+                if alt_path.is_relative_to(alt_root) and alt_path.is_file():
+                    target_path = alt_path
 
             if not target_path.is_file():
-                raise HTTPException(status_code=404, detail=f"Sample video not found: {sample_filename}")
+                raise HTTPException(status_code=404, detail=f"Sample video not found: {safe_name}")
 
             result = inspect_video_file(
                 target_path,
-                filename=sample_filename,
+                filename=safe_name,
                 sample_fps=sample_fps,
                 confidence=confidence,
                 model_choice=model_choice,

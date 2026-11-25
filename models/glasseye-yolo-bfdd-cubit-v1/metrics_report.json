@@ -7,7 +7,7 @@
   "device": "0",
   "python_version": "3.12.3",
   "dataset_hash": "8557ee8832d54cfd3b0f24c3275b4d38cfc589b042396453b67616fdb6685978",
-  "dataset_yaml": "/home/sanjeev/Downloads/glasseye/data/bfdd_cubit_binary_v1/data.yaml",
+  "dataset_yaml": "data/bfdd_cubit_binary_v1/data.yaml",
   "class_map": {
     "0": "defect"
   },
@@ -34,8 +34,8 @@
       "mAP50_95": 0.170545
     }
   },
-  "best_checkpoint": "/home/sanjeev/Downloads/glasseye/models/glasseye-yolo-bfdd-cubit-v1/best.pt",
-  "best_checkpoint_sha256": "df78a4f90c776d8f122ec02972a193f91b1f4fc3916f1d78a4f51bb2e05445cf",
-  "training_artifacts": "/home/sanjeev/Downloads/glasseye/models/glasseye-yolo-bfdd-cubit-v1/training_runs/seeded_v1",
-  "validation_artifacts": "/home/sanjeev/Downloads/glasseye/models/glasseye-yolo-bfdd-cubit-v1/training_runs/test_metrics"
+  "best_checkpoint": "models/glasseye-yolo-bfdd-cubit-v1/best.pt",
+  "best_checkpoint_sha256": "453955d3e64e320d0639be31b2c833c12253e8acd2ec88911a9c06463711265a",
+  "training_artifacts": "models/glasseye-yolo-bfdd-cubit-v1/training_runs/seeded_v1",
+  "validation_artifacts": "models/glasseye-yolo-bfdd-cubit-v1/training_runs/test_metrics"
 }

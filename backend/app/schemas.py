@@ -47,6 +47,7 @@ class IssueStatus(StrEnum):
 
 class Detection(StrictModel):
     class_name: DefectClass
+    raw_class_name: str | None = None
     class_id: int = Field(ge=0)
     confidence: float = Field(ge=0, le=1)
     bbox_xyxy: list[float] = Field(min_length=4, max_length=4)

@@ -220,7 +220,7 @@ def inspect_image_bytes(
         ]
         location = locate_bbox(det.bbox_xyxy, width, height)
         display_name, severity, ctype = _classify_defect(
-            det.class_name.value,
+            det.raw_class_name or det.class_name.value,
             det.confidence,
             det.bbox_xyxy,
             width,

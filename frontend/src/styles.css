@@ -426,45 +426,8 @@ dd { margin: 0; font-size: 0.78rem; line-height: 1.4; }
 }
 
 /* ==========================================================================
-   Tab Navigation & Interactive Image Inspector
+   Interactive Image Inspector
    ========================================================================== */
-
-.tab-nav {
-  display: flex;
-  gap: 12px;
-  margin: 28px 0 20px;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 12px;
-}
-
-.tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--panel);
-  color: var(--paper-soft);
-  cursor: pointer;
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  transition: all 0.2s ease;
-}
-
-.tab-btn:hover {
-  background: var(--panel-2);
-  border-color: rgba(235, 108, 54, 0.4);
-  color: var(--paper);
-}
-
-.tab-btn.active {
-  background: linear-gradient(135deg, #2b2217, #1a150e);
-  border-color: var(--accent);
-  color: var(--accent-bright);
-  box-shadow: 0 0 20px rgba(235, 108, 54, 0.18);
-}
 
 /* Image Inspector Container */
 .inspector-container {

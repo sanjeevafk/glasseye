@@ -10,10 +10,8 @@ import tempfile
 import time
 import uuid
 from pathlib import Path
-from typing import Any
 
 import cv2
-import numpy as np
 from PIL import Image, ImageDraw
 
 from .detector import YoloDetector
@@ -119,7 +117,7 @@ def inspect_video_file(
             f_height, f_width = rgb_frame.shape[:2]
 
             detector_frame = detector.predict_frame(
-                rgb_frame,
+                bgr_frame,
                 frame_id=f"f_{frame_idx}",
                 timestamp=ts,
                 image_id=f"{filename}_{frame_idx}",
@@ -130,14 +128,17 @@ def inspect_video_file(
 
             for det in detector_frame.detections:
                 x1, y1, x2, y2 = det.bbox_xyxy
-                raw_cls = det.class_name.value
+                raw_cls = det.raw_class_name or det.class_name.value
                 disp_name, sev, ctype = _classify_defect(raw_cls, det.confidence, [x1, y1, x2, y2], f_width, f_height)
                 panel_loc = locate_bbox([x1, y1, x2, y2], f_width, f_height)
+                col_idx = "ABCD".index(panel_loc.panel_id[0])
+                row_idx = "123".index(panel_loc.panel_id[1])
+                heatmap_pid = f"P-{col_idx}-{row_idx}"
                 area_frac = ((x2 - x1) * (y2 - y1)) / float(f_width * f_height)
 
                 item = DetectionItem(
                     detection_id=f"det_{sampled_count}_{len(detections_list)}",
-                    class_name=raw_cls,
+                    class_name=det.class_name.value,
                     display_name=disp_name,
                     confidence=round(det.confidence, 3),
                     bbox_xyxy=[round(c, 1) for c in [x1, y1, x2, y2]],
@@ -148,7 +149,7 @@ def inspect_video_file(
                     classification_type=ctype,
                 )
                 detections_list.append(item)
-                panel_accumulator.setdefault(panel_loc.panel_id, []).append(item)
+                panel_accumulator.setdefault(heatmap_pid, []).append(item)
 
                 if ctype == "structural":
                     total_structural += 1

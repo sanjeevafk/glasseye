@@ -112,7 +112,7 @@ export default function App() {
       {/* Navigation Quick Links */}
       <nav className="mode-nav-bar" aria-label="Mission Control Modules">
         <a href="#drone-video-scanner" className="mode-nav-link active">🎥 Aerial Drone Video Scanner</a>
-        <a href="#image-inspector" className="mode-nav-link">🖼️ High-Res Image Inspector</a>
+        <a href="#custom-inspection" className="mode-nav-link">🖼️ High-Res Image Inspector</a>
         <a href="#mission-control" className="mode-nav-link">🛰️ Closed-Loop 3D Digital Twin</a>
       </nav>
 

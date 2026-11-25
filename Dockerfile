@@ -45,15 +45,10 @@ COPY Makefile /app/Makefile
 # Checkpoints ship in the image so the build skips retraining
 COPY models/ /app/models/
 
-# Advisory VLM config for the demo bake. Render injects service env vars as
-# build args automatically; local builds without them fall back to fixture
-# mode (no network, no key). GLASSEYE_VLM_API_KEY is only referenced inside
-# the RUN shell below (never persisted via ENV); the key is set as a Render
-# service env var, which Render forwards to the build as an ARG. Hackathon
-# tradeoff: the key value is visible in the image's build layer, so rotate it
-# after the event if it matters.
+# Advisory VLM config for the build-time deterministic demo bake.
+# Uses fixture mode (no network, no API key) during image build; pass
+# GLASSEYE_VLM_API_KEY at runtime via container environment variables.
 ARG DEMO_VLM_MODE=fixture
-ARG GLASSEYE_VLM_API_KEY=
 ARG GLASSEYE_VLM_BASE_URL=https://integrate.api.nvidia.com/v1
 ARG GLASSEYE_VLM_MODEL=meta/llama-3.2-11b-vision-instruct
 ARG GLASSEYE_VLM_TIMEOUT_SECONDS=60

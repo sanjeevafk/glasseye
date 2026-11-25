@@ -6,8 +6,8 @@
   "class_map": {
     "0": "defect"
   },
-  "best_checkpoint": "/home/sanjeev/Downloads/glasseye/models/glasseye-yolo-bfdd-cubit-v1/best.pt",
-  "best_checkpoint_sha256": "df78a4f90c776d8f122ec02972a193f91b1f4fc3916f1d78a4f51bb2e05445cf",
+  "best_checkpoint": "models/glasseye-yolo-bfdd-cubit-v1/best.pt",
+  "best_checkpoint_sha256": "453955d3e64e320d0639be31b2c833c12253e8acd2ec88911a9c06463711265a",
   "training_config": {
     "base_model": "yolov8n.pt",
     "data_yaml": "data/bfdd_cubit_binary_v1/data.yaml",
